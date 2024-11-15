@@ -40,6 +40,17 @@ Writer::~Writer()
 
 }
 
+
+uint32_t Writer::convertSI_to_parameter(float x, float xMin, float xMax, uint bitSize)
+{
+    float span = xMax - xMin;
+    x = saturate(xMin, xMax, x);
+    
+    uint32_t parameter = (uint32_t) ( (x-xMin)*((float)(1<<bitSize)-1)/span );
+    return parameter;
+}
+
+
 /*
  *****************************************************************************
  *                               Motor infos
@@ -88,7 +99,7 @@ int Writer::writeExitMITMode(int id)
     return nbytes;        
 }
 
-int Writer::writeSetZeroPosition(int id)
+int Writer::writeZeroPosition(int id)
 {
     struct can_frame frame;
     frame.can_id = id;
@@ -108,3 +119,56 @@ int Writer::writeSetZeroPosition(int id)
  
     return nbytes;       
 }
+
+int Writer::writeMITCommand(int id, float position, float speed, float Kp, float Kd, float torque)
+{
+    // Change the signs from our custom reference to CubeMars' driver definition
+    position = -position;
+    speed = -speed;
+    torque = -torque;
+
+    // Extract min/max parameters from the query motor
+    int idx = getIndex(m_ids, id);
+    float minPosition = m_motors[idx]->minPosition;
+    float maxPosition = m_motors[idx]->maxPosition;
+    float minSpeed = m_motors[idx]->minSpeed;
+    float maxSpeed = m_motors[idx]->maxSpeed;
+    float minKp = m_motors[idx]->minKp;
+    float maxKp = m_motors[idx]->maxKp;
+    float minKd = m_motors[idx]->minKd;
+    float maxKd = m_motors[idx]->maxKd;
+    float minTorque = m_motors[idx]->minTorque;
+    float maxTorque = m_motors[idx]->maxTorque;
+
+    // Convert to parameters (includes saturation)
+    uint32_t positionParam = convertSI_to_parameter(position, minPosition, maxPosition, 16);
+    uint32_t speedParam = convertSI_to_parameter(speed, minSpeed, maxSpeed, 12);
+    uint32_t KpParam = convertSI_to_parameter(Kp, minKp, maxKp, 12);
+    uint32_t KdParam = convertSI_to_parameter(Kd, minKd, maxKd, 12);
+    uint32_t torqueParam = convertSI_to_parameter(torque, minTorque, maxTorque, 12);
+
+    // Create CAN packet
+    struct can_frame frame;
+    frame.can_id = id;
+    frame.len = FRAME_LENGTH;
+    frame.data[0] =  positionParam>>8;
+    frame.data[1] =  positionParam&0xFF;
+    frame.data[2] =  speedParam>>4;
+    frame.data[3] =  ((speedParam&0xF)<<4) | (KpParam>>8);
+    frame.data[4] = KpParam&0xFF;
+    frame.data[5] = KdParam>>4;
+    frame.data[6] = ((KdParam&0xF)<<4)| (torqueParam>>8);
+    frame.data[7] = torqueParam&0xFF;
+
+    // DEBUG
+    /*cout << endl;
+    for (int i=0; i<8; i++)
+        cout << "Data " << i << ": " << convertToHex(frame.data[i]) << endl;*/
+
+    // Send frame
+    int nbytes = -1;
+    nbytes = write(m_s, &frame, sizeof(can_frame));
+ 
+    return nbytes;           
+}
+

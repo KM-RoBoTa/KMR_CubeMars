@@ -48,6 +48,7 @@ struct Motor {
     int id;
     Model model = Model::UNDEF_MODEL;
 
+    // Parameters depending on motor model
     float minPosition = 0;
     float maxPosition = 0;
     float minSpeed = 0;
@@ -58,6 +59,15 @@ struct Motor {
     float maxKp = 0;
     float minKd = 0;
     float maxKd = 0;
+
+    // Feedback values
+    float fbckPosition = 0;
+    float fbckSpeed = 0;
+    float fbckTorque = 0;
+    int fbckTemperature = 0;
+
+    // CAN listener status flags
+    bool fr_fbckReady = 0;
 
     // Constructor
     Motor(int id, Model model)

@@ -15,7 +15,7 @@
 #include <vector>
 #include <cmath>
 
-//#include "listener.hpp"
+#include "listener.hpp"
 #include "writer.hpp"
 
 #ifndef KMR_CUBEMARS_MOTOR_HANDLER_HPP
@@ -33,11 +33,15 @@ public:
     bool enterMITMode(std::vector<int> ids);
     bool exitMITMode();
     bool exitMITMode(std::vector<int> ids);
-    // 0 position
-    bool writeMITCommand();
+    bool setZeroPosition(std::vector<int> ids);
+    // 0 pos single motor? All of them?
+    bool writeMITCommand(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
+                         std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
+    bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
 
 private:
-    //Listener* m_listener = nullptr;
+    Listener* m_listener = nullptr;
     Writer* m_writer = nullptr;
 
     std::vector<int> m_ids;

@@ -30,8 +30,8 @@ public:
     // PID settings
     int writeEnterMITMode(int id);
     int writeExitMITMode(int id);
-    int writeSetZeroPosition(int id);
-    int writeMITCommand(int id, float pos, float speed, float Kp, float Kd, float Tff);
+    int writeZeroPosition(int id);
+    int writeMITCommand(int id, float pos, float speed, float Kp, float Kd, float torque);
 
 private:
     int m_s; // Socket
@@ -39,6 +39,8 @@ private:
 
     std::vector<Motor*> m_motors;
     int m_nbrMotors;
+
+    uint32_t convertSI_to_parameter(float x, float xMin, float xMax, uint bitSize);
 };
 
 

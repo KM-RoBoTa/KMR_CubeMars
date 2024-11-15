@@ -32,8 +32,9 @@ public:
     Listener(std::vector<Motor*> motors, std::vector<int> ids, int s);
     ~Listener();
 
-    // --------- PID ----------- //
-    //bool getPID(int id, PIDReport& pidReport);
+    bool fbckReceived(int id);
+    bool getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
+                      float& fbckTorque, int& fbckTemperature);
 
 private:
     // Thread
@@ -46,6 +47,8 @@ private:
     std::vector<int> m_ids;
 
     int listenerLoop(int s);
+    void parseFrame(can_frame frame);
+    float convertParameter_to_SI(int x, float xMin, float xMax, int bitSize);
 };
 
 #endif

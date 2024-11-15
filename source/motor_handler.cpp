@@ -26,6 +26,8 @@
 
 #include "motor_handler.hpp"
 
+// TODO: signs for speed & torque?
+
 using namespace std;
 
 MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> models)
@@ -48,14 +50,14 @@ MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> m
 
     // Create the writer and the listener 
     m_writer = new Writer(m_motors, ids, s);
-    //m_listener = new Listener(m_motors, ids, s);
+    m_listener = new Listener(m_motors, ids, s);
 
     usleep(2*1000000);
 }
 
 MotorHandler::~MotorHandler()
 {
-    //delete m_listener;
+    delete m_listener;
     delete m_writer;
 
     for (int i=0; i<m_nbrMotors; i++)
@@ -105,8 +107,18 @@ bool MotorHandler::enterMITMode(vector<int> ids)
         if(m_writer->writeEnterMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send PID-reading for motor " << id << endl;
     }
-    // NO CHECKS?
-    return true;
+
+    int fullSuccess = 0;
+    for(auto id : ids) {
+        bool success = m_listener->fbckReceived(id);
+        fullSuccess += success;
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size())
+        return 1;
+    else
+        return 0;  
 }
 
 bool MotorHandler::enterMITMode()
@@ -120,11 +132,88 @@ bool MotorHandler::exitMITMode(vector<int> ids)
         if(m_writer->writeExitMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send PID-reading for motor " << id << endl;
     }
-    // NO CHECKS?
-    return true;
+
+    int fullSuccess = 0;
+    for(auto id : ids) {
+        bool success = m_listener->fbckReceived(id);
+        fullSuccess += success;
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size())
+        return 1;
+    else
+        return 0; 
 }
+
 
 bool MotorHandler::exitMITMode()
 {
     return(exitMITMode(m_ids));
+}
+
+
+bool MotorHandler::setZeroPosition(vector<int> ids)
+{
+    for(auto id : ids) {
+        if(m_writer->writeZeroPosition(id) < 0)
+            cout << "[FAILED REQUEST] Failed to send zero-position for motor " << id << endl;
+    }
+
+    int fullSuccess = 0;
+    for(auto id : ids) {
+        bool success = m_listener->fbckReceived(id);
+        fullSuccess += success;
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size())
+        return 1;
+    else
+        return 0;  
+}
+
+// Arguments: desired positions & speeds
+bool MotorHandler::writeMITCommand(vector<int> ids, vector<float> positions, vector<float> speeds,
+                                   vector<float> Kps, vector<float> Kds, vector<float> torques)
+{
+    for (int i=0; i<ids.size(); i++) {
+        if(m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]) < 0)
+            cout << "[FAILED REQUEST] Failed to send MIT command to motor " << ids[i] << endl;
+    }
+
+    int fullSuccess = 0;
+    for(auto id : ids) {
+        bool success = m_listener->fbckReceived(id);
+        fullSuccess += success;
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size())
+        return 1;
+    else
+        return 0; 
+}
+
+bool MotorHandler::getFeedbacks(vector<int> ids, vector<float>& fbckPositions, vector<float>& fbckSpeeds,
+                                vector<float>& fbckTorques, vector<int>& fbckTemperatures)
+{
+    for(auto id : ids) {
+        if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
+            cout << "[FAILED REQUEST] Failed to request feedback for motor " << id << endl;
+    }
+
+    int fullSuccess = 0;
+    for (int i=0; i<ids.size(); i++) {
+        float temp = 0;
+        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                fbckTorques[i], fbckTemperatures[i]);
+        fullSuccess += success;
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size())
+        return 1;
+    else
+        return 0;  
 }
