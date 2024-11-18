@@ -37,7 +37,7 @@ int main()
     vector<int> fbckTemperatures(1);
 
     cout << endl << endl << "Writing command" << endl;
-    motorHandler.writeMITCommand(ids, positions, speeds, Kps, Kds, torques);
+    motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
     
     int ctr = 0;
     const int maxCtr = 1000; 
@@ -52,7 +52,7 @@ int main()
         //speeds[0] = speedC;
 
 
-        motorHandler.writeMITCommand(ids, positions, speeds, Kps, Kds, torques);
+        motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
         ctr++;
 
         timespec end = time_s();
@@ -66,7 +66,7 @@ int main()
     /*sleep(20);
 
     torques[0] = 0;
-    motorHandler.writeMITCommand(ids, positions, speeds, Kps, Kds, torques);
+    motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
     cout << "Torque set to 0" << endl;
     sleep(10);*/
 

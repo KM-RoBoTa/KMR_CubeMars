@@ -96,6 +96,24 @@ int MotorHandler::openSocket(const char* can_bus)
     return s;
 }
 
+
+void MotorHandler::setKps(vector<int> ids, vector<float> Kps)
+{
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+        m_motors[idx]->Kp = Kps[idx];
+    }
+}
+
+void MotorHandler::setKds(vector<int> ids, vector<float> Kds)
+{
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+        m_motors[idx]->Kd = Kds[idx];
+    }
+}
+
+
 /*
  *****************************************************************************
  *                               Motor infos
@@ -173,8 +191,20 @@ bool MotorHandler::setZeroPosition(vector<int> ids)
         return 0;  
 }
 
+bool MotorHandler::setZeroPosition()
+{
+    return(setZeroPosition(m_ids));
+}
+
+bool MotorHandler::setZeroPosition(int id)
+{
+    vector<int> ids(1, id);
+    return(setZeroPosition(ids));
+}
+
+
 // Arguments: desired positions & speeds
-bool MotorHandler::writeMITCommand(vector<int> ids, vector<float> positions, vector<float> speeds,
+bool MotorHandler::sendImpedanceCommand(vector<int> ids, vector<float> positions, vector<float> speeds,
                                    vector<float> Kps, vector<float> Kds, vector<float> torques)
 {
     for (int i=0; i<ids.size(); i++) {
@@ -194,6 +224,13 @@ bool MotorHandler::writeMITCommand(vector<int> ids, vector<float> positions, vec
     else
         return 0; 
 }
+
+bool MotorHandler::sendImpedanceCommand(vector<float> positions, vector<float> speeds,
+                                   vector<float> Kps, vector<float> Kds, vector<float> torques)
+{
+    return(sendImpedanceCommand(m_ids, positions, speeds, Kps, Kds, torques));
+}
+
 
 bool MotorHandler::getFeedbacks(vector<int> ids, vector<float>& fbckPositions, vector<float>& fbckSpeeds,
                                 vector<float>& fbckTorques, vector<int>& fbckTemperatures)
@@ -216,4 +253,161 @@ bool MotorHandler::getFeedbacks(vector<int> ids, vector<float>& fbckPositions, v
         return 1;
     else
         return 0;  
+}
+
+bool MotorHandler::getFeedbacks(vector<float>& fbckPositions, vector<float>& fbckSpeeds,
+                                vector<float>& fbckTorques, vector<int>& fbckTemperatures)
+{
+    return(getFeedbacks(m_ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures));
+}
+
+bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions)
+{
+    vector<float> Kps(ids.size());
+    vector<float> Kds(ids.size());
+    vector<float> speeds(ids.size(), 0);
+    vector<float> torques(ids.size(), 0);
+
+    // Fetch the previously set Kp and Kd for each motor
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+        float Kp = m_motors[idx]->Kp;
+        if (Kp < 0) {
+            cout << "Error! Kp not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kps[idx] = Kp;
+
+        float Kd = m_motors[idx]->Kd;
+        if (Kd < 0) {
+            cout << "Error! Kd not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kds[idx] = Kd;
+    }
+
+    // Send the command
+    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::sendPosition(vector<float> positions)
+{
+    return (sendPosition(m_ids, positions));
+}
+
+bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions, vector<float> torques)
+{
+    vector<float> Kps(ids.size());
+    vector<float> Kds(ids.size());
+    vector<float> speeds(ids.size(), 0);
+
+    // Fetch the previously set Kp and Kd for each motor
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+        float Kp = m_motors[idx]->Kp;
+        if (Kp < 0) {
+            cout << "Error! Kp not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kps[idx] = Kp;
+
+        float Kd = m_motors[idx]->Kd;
+        if (Kd < 0) {
+            cout << "Error! Kd not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kds[idx] = Kd;
+    }
+
+    // Send the command
+    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::sendPosition(vector<float> positions, vector<float> torques)
+{
+   return (sendPosition(m_ids, positions, torques));
+}
+
+
+bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds)
+{
+    vector<float> Kps(ids.size(), 0);
+    vector<float> Kds(ids.size());
+    vector<float> positions(ids.size(), 0);
+    vector<float> torques(ids.size(), 0);
+
+    // Fetch the previously set Kd for each motor
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+
+        float Kd = m_motors[idx]->Kd;
+        if (Kd < 0) {
+            cout << "Error! Kd not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kds[idx] = Kd;
+    }
+
+    // Send the command
+    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::sendSpeed(vector<float> speeds)
+{
+    return (sendSpeed(m_ids, speeds));
+}
+
+bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds, vector<float> torques)
+{
+    vector<float> Kps(ids.size(), 0);
+    vector<float> Kds(ids.size());
+    vector<float> positions(ids.size(), 0);
+
+    // Fetch the previously set Kp and Kd for each motor
+    for(auto id : ids) {
+        int idx = getIndex(m_ids, id);
+
+        float Kd = m_motors[idx]->Kd;
+        if (Kd < 0) {
+            cout << "Error! Kd not set for motor " << id << endl;
+            exit(1);
+        }
+        else 
+            Kds[idx] = Kd;
+    }
+
+    // Send the command
+    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::sendSpeed(vector<float> speeds, vector<float> torques)
+{
+   return (sendSpeed(m_ids, speeds, torques));
+}
+
+
+bool MotorHandler::sendTorque(vector<int> ids, vector<float> torques)
+{
+    vector<float> Kps(ids.size(), 0);
+    vector<float> Kds(ids.size(), 0);
+    vector<float> positions(ids.size(), 0);
+    vector<float> speeds(ids.size(), 0);
+
+    // Send the command
+    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::sendTorque(vector<float> torques)
+{
+    return (sendSpeed(m_ids, torques));
 }

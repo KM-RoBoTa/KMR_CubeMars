@@ -60,6 +60,10 @@ struct Motor {
     float minKd = 0;
     float maxKd = 0;
 
+    // Motor-specific parameters
+    float Kp = -1;
+    float Kd = -1;
+
     // Feedback values
     float fbckPosition = 0;
     float fbckSpeed = 0;

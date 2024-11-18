@@ -29,16 +29,41 @@ public:
     MotorHandler(std::vector<int> ids, const char* can_bus, std::vector<Model> models);
     ~MotorHandler();
 
+    // Setting parameters
+    void setKps(std::vector<int> ids, std::vector<float> Kps);
+    void setKds(std::vector<int> ids, std::vector<float> Kds);
+
     bool enterMITMode();
     bool enterMITMode(std::vector<int> ids);
     bool exitMITMode();
     bool exitMITMode(std::vector<int> ids);
     bool setZeroPosition(std::vector<int> ids);
-    // 0 pos single motor? All of them?
-    bool writeMITCommand(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
+    bool setZeroPosition();
+    bool setZeroPosition(int id);
+
+
+    bool sendImpedanceCommand(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
                          std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
+    bool sendImpedanceCommand(std::vector<float> positions, std::vector<float> speeds,
+                         std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
+
     bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
                       std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
+    bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
+  
+    bool sendPosition(std::vector<int> ids, std::vector<float> positions);
+    bool sendPosition(std::vector<float> positions);
+    bool sendPosition(std::vector<int> ids, std::vector<float> positions, std::vector<float> torques);
+    bool sendPosition(std::vector<float> positions, std::vector<float> torques);
+
+    bool sendSpeed(std::vector<int> ids, std::vector<float> speeds);
+    bool sendSpeed(std::vector<float> speeds);
+    bool sendSpeed(std::vector<int> ids, std::vector<float> speeds, std::vector<float> torques);
+    bool sendSpeed(std::vector<float> speeds, std::vector<float> torques);
+
+    bool sendTorque(std::vector<int> ids, std::vector<float> torques);
+    bool sendTorque(std::vector<float> torques);
 
 private:
     Listener* m_listener = nullptr;
