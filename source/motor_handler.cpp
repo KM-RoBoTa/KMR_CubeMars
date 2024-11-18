@@ -121,7 +121,7 @@ void MotorHandler::setKds(vector<int> ids, vector<float> Kds)
  *                               Motor infos
  ****************************************************************************/
 
-bool MotorHandler::enterMITMode(vector<int> ids)
+bool MotorHandler::enableMotors(vector<int> ids)
 {
     for(auto id : ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
@@ -141,13 +141,18 @@ bool MotorHandler::enterMITMode(vector<int> ids)
         return 0;  
 }
 
-bool MotorHandler::enterMITMode()
+bool MotorHandler::enableMotors()
 {
-    return(enterMITMode(m_ids));
+    return(enableMotors(m_ids));
 }
 
-bool MotorHandler::exitMITMode(vector<int> ids)
+bool MotorHandler::disableMotors(vector<int> ids)
 {
+    // Stop the motors first
+    bool success = stopMotors(ids);
+    if (!success)
+        cout << "Error! The motors were not stopped correctly. Power them down after end of program" << endl;
+
     for(auto id : ids) {
         if(m_writer->writeExitMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send PID-reading for motor " << id << endl;
@@ -167,9 +172,9 @@ bool MotorHandler::exitMITMode(vector<int> ids)
 }
 
 
-bool MotorHandler::exitMITMode()
+bool MotorHandler::disableMotors()
 {
-    return(exitMITMode(m_ids));
+    return(disableMotors(m_ids));
 }
 
 

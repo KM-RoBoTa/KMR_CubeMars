@@ -41,7 +41,7 @@ int main()
     vector<float> fbckPositions(nbrMotors), fbckSpeeds(nbrMotors), fbckTorques(nbrMotors);
     vector<int> fbckTemperatures(nbrMotors);
     cout << "Going to MIT mode" << endl;
-    motorHandler.enterMITMode();
+    motorHandler.enableMotors();
     sleep(1);
 
     // Set the 0 reference
@@ -106,10 +106,8 @@ int main()
         usleep(toSleep_us);
     }
 
-    motorHandler.stopMotors();
-
     cout << "Exiting MIT mode" << endl;
-    motorHandler.exitMITMode();
+    motorHandler.disableMotors();
     sleep(1);
 
     return(1);

@@ -31,28 +31,29 @@ public:
     MotorHandler(std::vector<int> ids, const char* can_bus, std::vector<Model> models);
     ~MotorHandler();
 
-    // Setting parameters
+    // ------ Setting parameters ------ //
     void setKps(std::vector<int> ids, std::vector<float> Kps);
     void setKds(std::vector<int> ids, std::vector<float> Kds);
 
-    bool enterMITMode();
-    bool enterMITMode(std::vector<int> ids);
-    bool exitMITMode();
-    bool exitMITMode(std::vector<int> ids);
+    // ------ Enabling/disabling + 0 setting ------ //
+    bool enableMotors();
+    bool enableMotors(std::vector<int> ids);
+    bool disableMotors();
+    bool disableMotors(std::vector<int> ids);
+
+    bool stopMotors(std::vector<int> ids);
+    bool stopMotors();
+    bool stopMotor(int id);
 
     bool setZeroPosition(std::vector<int> ids);
     bool setZeroPosition();
     bool setZeroPosition(int id);
 
+    // ------ Control commands ------ //
     bool setImpedance(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
                          std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
     bool setImpedance(std::vector<float> positions, std::vector<float> speeds,
                          std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
-
-    bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
-                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
-    bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
-                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
   
     bool setPositions(std::vector<int> ids, std::vector<float> positions);
     bool setPositions(std::vector<float> positions);
@@ -67,9 +68,12 @@ public:
     bool setTorques(std::vector<int> ids, std::vector<float> torques);
     bool setTorques(std::vector<float> torques);
 
-    bool stopMotors(std::vector<int> ids);
-    bool stopMotors();
-    bool stopMotor(int id);
+    // ------ Feedbacks ------ //
+    bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
+    bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
+
 
 private:
     Listener* m_listener = nullptr;
@@ -80,8 +84,6 @@ private:
     int m_nbrMotors;
 
     int openSocket(const char* can_bus);
-    
-
 };
 
 }

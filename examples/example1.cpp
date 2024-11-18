@@ -21,7 +21,7 @@ int main()
 
     sleep(3);
     cout << "Going to MIT mode" << endl;
-    motorHandler.enterMITMode();
+    motorHandler.enableMotors();
 
     cout << "Sending the command" << endl;
     float goalPosition = M_PI/2;
@@ -71,7 +71,7 @@ int main()
     sleep(10);*/
 
     cout << "Exiting MIT mode" << endl;
-    motorHandler.exitMITMode();
+    motorHandler.disableMotors();
     sleep(1);
 
     return(1);
