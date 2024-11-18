@@ -1,14 +1,13 @@
 /**
  ******************************************************************************
  * @file            structures.hpp
- * @brief           Header for the writer.cpp file
+ * @brief           Different structures used in the library
  ******************************************************************************
  * @copyright
- * Copyright 2021-2023 Laura Paez Coy and Kamilo Melo                    \n
+ * Copyright 2021-2024 Kamilo Melo        \n
  * This code is under MIT licence: https://opensource.org/licenses/MIT
- * @authors  katarina.lichardova@km-robota.com, 09/2024
- * @authors  kamilo.melo@km-robota.com, 09/2024
- ******************************************************************************
+ * @authors katarina.lichardova@km-robota.com, 11/2024
+ *****************************************************************************
  */
 
 #ifndef KMR_CUBEMARS_STRUCTURES_HPP
@@ -23,6 +22,9 @@
 
 #define FRAME_LENGTH        8
 #define RESPONSE_TIMEOUT    30*1000 // ms
+
+namespace KMR::CBM
+{
 
 enum class OperatingMode {
     MIT
@@ -128,5 +130,6 @@ struct Motor {
     }
 };
 
+}
 
 #endif

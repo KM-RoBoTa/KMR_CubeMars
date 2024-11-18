@@ -1,14 +1,13 @@
 /**
- ****************************************************************************
- * @file        writer.cpp
- * @brief       CAN bus writer
- ****************************************************************************
+ ******************************************************************************
+ * @file            writer.cpp
+ * @brief           Methods of the Writer class
+ ******************************************************************************
  * @copyright
- * Copyright 2021-2023 Laura Paez Coy and Kamilo Melo                    \n
+ * Copyright 2021-2024 Kamilo Melo        \n
  * This code is under MIT licence: https://opensource.org/licenses/MIT
- * @authors  katarina.lichardova@km-robota.com, 09/2024
- * @authors  kamilo.melo@km-robota.com, 09/2024
- ****************************************************************************
+ * @authors katarina.lichardova@km-robota.com, 11/2024
+ *****************************************************************************
  */
 
 #include <linux/can.h>
@@ -19,6 +18,9 @@
 #include "writer.hpp"
 
 using namespace std;
+
+namespace KMR::CBM
+{
 
 /**
  * @brief       Create the CAN writer
@@ -172,3 +174,4 @@ int Writer::writeMITCommand(int id, float position, float speed, float Kp, float
     return nbytes;           
 }
 
+}

@@ -1,14 +1,13 @@
 /**
  ******************************************************************************
- * @file        motor_handler.cpp
- * @brief       Handles the communication with MyActuator Motors
+ * @file            motor_handler.cpp
+ * @brief           Methods of the MotorHandler class
  ******************************************************************************
  * @copyright
- * Copyright 2021-2023 Laura Paez Coy and Kamilo Melo                    \n
+ * Copyright 2021-2024 Kamilo Melo        \n
  * This code is under MIT licence: https://opensource.org/licenses/MIT
- * @authors  katarina.lichardova@km-robota.com, 09/2024
- * @authors  kamilo.melo@km-robota.com, 09/2024
- ******************************************************************************
+ * @authors katarina.lichardova@km-robota.com, 11/2024
+ *****************************************************************************
  */
 
 // Standard libraries
@@ -29,6 +28,9 @@
 // TODO: signs for speed & torque?
 
 using namespace std;
+
+namespace KMR::CBM
+{
 
 MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> models)
 {
@@ -204,7 +206,7 @@ bool MotorHandler::setZeroPosition(int id)
 
 
 // Arguments: desired positions & speeds
-bool MotorHandler::sendImpedanceCommand(vector<int> ids, vector<float> positions, vector<float> speeds,
+bool MotorHandler::setImpedance(vector<int> ids, vector<float> positions, vector<float> speeds,
                                    vector<float> Kps, vector<float> Kds, vector<float> torques)
 {
     for (int i=0; i<ids.size(); i++) {
@@ -225,10 +227,10 @@ bool MotorHandler::sendImpedanceCommand(vector<int> ids, vector<float> positions
         return 0; 
 }
 
-bool MotorHandler::sendImpedanceCommand(vector<float> positions, vector<float> speeds,
+bool MotorHandler::setImpedance(vector<float> positions, vector<float> speeds,
                                    vector<float> Kps, vector<float> Kds, vector<float> torques)
 {
-    return(sendImpedanceCommand(m_ids, positions, speeds, Kps, Kds, torques));
+    return(setImpedance(m_ids, positions, speeds, Kps, Kds, torques));
 }
 
 
@@ -261,7 +263,7 @@ bool MotorHandler::getFeedbacks(vector<float>& fbckPositions, vector<float>& fbc
     return(getFeedbacks(m_ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures));
 }
 
-bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions)
+bool MotorHandler::setPositions(vector<int> ids, vector<float> positions)
 {
     vector<float> Kps(ids.size());
     vector<float> Kds(ids.size());
@@ -289,16 +291,16 @@ bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions)
     }
 
     // Send the command
-    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
     return success;
 }
 
-bool MotorHandler::sendPosition(vector<float> positions)
+bool MotorHandler::setPositions(vector<float> positions)
 {
-    return (sendPosition(m_ids, positions));
+    return (setPositions(m_ids, positions));
 }
 
-bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions, vector<float> torques)
+bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector<float> torques)
 {
     vector<float> Kps(ids.size());
     vector<float> Kds(ids.size());
@@ -325,17 +327,17 @@ bool MotorHandler::sendPosition(vector<int> ids, vector<float> positions, vector
     }
 
     // Send the command
-    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
     return success;
 }
 
-bool MotorHandler::sendPosition(vector<float> positions, vector<float> torques)
+bool MotorHandler::setPositions(vector<float> positions, vector<float> torques)
 {
-   return (sendPosition(m_ids, positions, torques));
+   return (setPositions(m_ids, positions, torques));
 }
 
 
-bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds)
+bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size());
@@ -356,16 +358,16 @@ bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds)
     }
 
     // Send the command
-    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
     return success;
 }
 
-bool MotorHandler::sendSpeed(vector<float> speeds)
+bool MotorHandler::setSpeeds(vector<float> speeds)
 {
-    return (sendSpeed(m_ids, speeds));
+    return (setSpeeds(m_ids, speeds));
 }
 
-bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds, vector<float> torques)
+bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds, vector<float> torques)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size());
@@ -385,17 +387,17 @@ bool MotorHandler::sendSpeed(vector<int> ids, vector<float> speeds, vector<float
     }
 
     // Send the command
-    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
     return success;
 }
 
-bool MotorHandler::sendSpeed(vector<float> speeds, vector<float> torques)
+bool MotorHandler::setSpeeds(vector<float> speeds, vector<float> torques)
 {
-   return (sendSpeed(m_ids, speeds, torques));
+   return (setSpeeds(m_ids, speeds, torques));
 }
 
 
-bool MotorHandler::sendTorque(vector<int> ids, vector<float> torques)
+bool MotorHandler::setTorques(vector<int> ids, vector<float> torques)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size(), 0);
@@ -403,11 +405,38 @@ bool MotorHandler::sendTorque(vector<int> ids, vector<float> torques)
     vector<float> speeds(ids.size(), 0);
 
     // Send the command
-    bool success = sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
     return success;
 }
 
-bool MotorHandler::sendTorque(vector<float> torques)
+bool MotorHandler::setTorques(vector<float> torques)
 {
-    return (sendSpeed(m_ids, torques));
+    return (setTorques(m_ids, torques));
+}
+
+
+bool MotorHandler::stopMotors(vector<int> ids)
+{
+    int nbrMotors = ids.size();
+    vector<float> positions(nbrMotors, 0);
+    vector<float> speeds(nbrMotors, 0);
+    vector<float> torques(nbrMotors, 0);
+    vector<float> Kps(nbrMotors, 0);
+    vector<float> Kds(nbrMotors, 0);
+
+    bool success = setImpedance(ids, positions, speeds, Kps, Kds, torques);
+    return success;
+}
+
+bool MotorHandler::stopMotors()
+{
+    return(stopMotors(m_ids));
+}
+
+bool MotorHandler::stopMotor(int id)
+{
+    vector<int> ids(1, id);
+    return(stopMotors(ids));
+}
+
 }

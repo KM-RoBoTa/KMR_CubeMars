@@ -1,14 +1,13 @@
 /**
  ******************************************************************************
  * @file            listener.hpp
- * @brief           Header for the listener.cpp file
+ * @brief           Definition of the Listener class
  ******************************************************************************
  * @copyright
- * Copyright 2021-2023 Laura Paez Coy and Kamilo Melo                    \n
+ * Copyright 2021-2024 Kamilo Melo        \n
  * This code is under MIT licence: https://opensource.org/licenses/MIT
- * @authors  katarina.lichardova@km-robota.com, 09/2024
- * @authors  kamilo.melo@km-robota.com, 09/2024
- ******************************************************************************
+ * @authors katarina.lichardova@km-robota.com, 11/2024
+ *****************************************************************************
  */
 
 #ifndef KMR_CUBEMARS_LISTENER_HPP
@@ -23,6 +22,8 @@
 #include "../config/structures.hpp"
 #include "utils.hpp"
 
+namespace KMR::CBM
+{
 
 /**
  * @brief   CAN bus listener, running in its own thread
@@ -50,5 +51,7 @@ private:
     void parseFrame(can_frame frame);
     float convertParameter_to_SI(int x, float xMin, float xMax, int bitSize);
 };
+
+}
 
 #endif

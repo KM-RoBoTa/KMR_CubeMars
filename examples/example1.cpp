@@ -8,11 +8,11 @@ using namespace std;
 
 int main()
 {
-    vector<Model> models(1, Model::AK60_6);
+    vector<KMR::CBM::Model> models(1, KMR::CBM::Model::AK60_6);
     vector<int> ids(1,1);
 
     const char* can_bus = "can0";
-    MotorHandler motorHandler(ids, can_bus, models);
+    KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
     sleep(1);
     cout << "Setting 0" << endl;
@@ -37,7 +37,7 @@ int main()
     vector<int> fbckTemperatures(1);
 
     cout << endl << endl << "Writing command" << endl;
-    motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+    motorHandler.setImpedance(ids, positions, speeds, Kps, Kds, torques);
     
     int ctr = 0;
     const int maxCtr = 1000; 
@@ -52,7 +52,7 @@ int main()
         //speeds[0] = speedC;
 
 
-        motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
+        motorHandler.setImpedance(ids, positions, speeds, Kps, Kds, torques);
         ctr++;
 
         timespec end = time_s();

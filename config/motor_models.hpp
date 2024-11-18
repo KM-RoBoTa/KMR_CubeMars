@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file            AK10_9.hpp
- * @brief           Configuration file of AK10_9 motors
+ * @file            motor_models.hpp
+ * @brief           Configuration file of AK motors
  ******************************************************************************
  * @copyright
  * Copyright 2021-2024 Kamilo Melo        \n
@@ -14,6 +14,9 @@
 #define KMR_CUBEMARS_MOTOR_MODELS_HPP
 
 #include "structures.hpp"
+
+namespace KMR::CBM
+{
 
 struct ModelParameters {
     float minPosition = -12.5;
@@ -120,5 +123,6 @@ struct AK80_8_table : ModelParameters {
     }
 };
 
+}
 
 #endif

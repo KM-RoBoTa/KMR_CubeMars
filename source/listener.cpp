@@ -1,14 +1,13 @@
 /**
- ****************************************************************************
- * @file        listener.cpp
- * @brief       CAN bus listener, running in own thread
- ****************************************************************************
+ ******************************************************************************
+ * @file            listener.cpp
+ * @brief           Methods of the Listener class
+ ******************************************************************************
  * @copyright
- * Copyright 2021-2023 Laura Paez Coy and Kamilo Melo                    \n
+ * Copyright 2021-2024 Kamilo Melo        \n
  * This code is under MIT licence: https://opensource.org/licenses/MIT
- * @authors  katarina.lichardova@km-robota.com, 09/2024
- * @authors  kamilo.melo@km-robota.com, 09/2024
- ****************************************************************************
+ * @authors katarina.lichardova@km-robota.com, 11/2024
+ *****************************************************************************
  */
 
 // Standard libraries
@@ -28,6 +27,8 @@
 
 using namespace std;
 
+namespace KMR::CBM
+{
 
 /**
  * @brief       Start the CAN bus listener
@@ -197,4 +198,6 @@ bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 	}
 
 	return available;	
+}
+
 }
