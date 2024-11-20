@@ -16,3 +16,4 @@ sudo ip link set can0 up type can bitrate 1000000
 - Motor pinging (to test)
 - Update full impedance example
 - Write gravity compensation example (to test)
+- Test if automatic motor disabling on destructor call works

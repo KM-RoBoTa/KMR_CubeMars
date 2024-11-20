@@ -61,6 +61,12 @@ MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> m
 
 MotorHandler::~MotorHandler()
 {
+    bool success = disableMotors();
+    if (!success) {
+        cout << "Error! Motors were not disabled correctly. ";
+        cout << "Disconnect power after the program ends" << endl;
+    }
+
     delete m_listener;
     delete m_writer;
 

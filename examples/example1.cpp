@@ -70,9 +70,9 @@ int main()
     cout << "Torque set to 0" << endl;
     sleep(10);*/
 
-    cout << "Exiting MIT mode" << endl;
+    /*cout << "Exiting MIT mode" << endl;
     motorHandler.disableMotors();
-    sleep(1);
+    sleep(1);*/
 
     return(1);
 }

@@ -87,9 +87,9 @@ int main()
         usleep(toSleep_us);
     }
 
-    cout << "Exiting MIT mode" << endl;
+    /*cout << "Exiting MIT mode" << endl;
     motorHandler.disableMotors();
-    sleep(1);
+    sleep(1);*/
 
     return(1);
 }
