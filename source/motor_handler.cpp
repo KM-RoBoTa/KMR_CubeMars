@@ -55,6 +55,8 @@ MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> m
     m_listener = new Listener(m_motors, ids, s);
 
     usleep(2*1000000);
+
+    pingMotors();
 }
 
 MotorHandler::~MotorHandler()
@@ -98,6 +100,23 @@ int MotorHandler::openSocket(const char* can_bus)
     return s;
 }
 
+void MotorHandler::pingMotors()
+{
+    for(auto id : m_ids) {
+        if(m_writer->writeEnterMITMode(id) < 0)
+            cout << "[FAILED REQUEST] Failed to ping motor " << id << endl;
+    }
+
+    for(auto id : m_ids) {
+        bool success = m_listener->fbckReceived(id);
+        if (success)
+            cout << "Motor " << id << " pinged successfully!" << endl;
+        else {
+            cout << "Error! Motor " << id << " is not responding" << endl;
+            exit(1);
+        }
+    }
+}            
 
 void MotorHandler::setKps(vector<int> ids, vector<float> Kps)
 {

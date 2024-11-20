@@ -84,6 +84,7 @@ private:
     int m_nbrMotors;
 
     int openSocket(const char* can_bus);
+    void pingMotors();
 };
 
 }
