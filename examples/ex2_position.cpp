@@ -62,7 +62,8 @@ int main()
     while (ctr < MAX_CTR) {
         // Get feedback
         timespec start = time_s();
-        /*robot.getPositions(fbckPositions);
+
+        motorHandler.getPositions(fbckPositions);
 
         cout << "Positions: "; 
         for (int i=0; i<nbrMotors; i++) {
@@ -70,12 +71,16 @@ int main()
             if (i != (nbrMotors-1))
                 cout << ", ";
         }
-        cout << endl;*/
+        cout << endl;
 
         // Send new goal positions
         for (int i=0; i<nbrMotors; i++)
             goalPositions[i] = angle;
+        //timespec startCommand = time_s();
         motorHandler.setPositions(goalPositions);
+        //timespec endCommand = time_s();
+        //double elapsedCommand = get_delta_us(endCommand, startCommand);
+        //cout << "Elapsed = " << elapsedCommand/1000.0 << " ms" << endl;
 
         // Update the goal angle for next loop
         if (forward) {
@@ -101,14 +106,13 @@ int main()
         timespec end = time_s();
         double elapsed = get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
-        if (toSleep_us < 0)
+        if (toSleep_us < 0) {
             toSleep_us = 0;
+            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+        }
+
         usleep(toSleep_us);
     }
-
-    /*cout << "Exiting MIT mode" << endl;
-    motorHandler.disableMotors();
-    sleep(1);*/
 
     return(1);
 }

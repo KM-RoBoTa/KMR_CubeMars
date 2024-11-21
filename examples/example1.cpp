@@ -63,16 +63,5 @@ int main()
         usleep(toSleep_us);
     }
 
-    /*sleep(20);
-
-    torques[0] = 0;
-    motorHandler.sendImpedanceCommand(ids, positions, speeds, Kps, Kds, torques);
-    cout << "Torque set to 0" << endl;
-    sleep(10);*/
-
-    /*cout << "Exiting MIT mode" << endl;
-    motorHandler.disableMotors();
-    sleep(1);*/
-
     return(1);
 }

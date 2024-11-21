@@ -24,7 +24,6 @@
 
 #include "listener.hpp"
 
-
 using namespace std;
 
 namespace KMR::CBM
@@ -78,14 +77,13 @@ int Listener::listenerLoop(int s)
     while(!stopThread) {
 
         struct can_frame frame;
-        int nbytes = read(s, &frame, sizeof(can_frame));
+        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 ust)
 
         if (nbytes > 0)
 			parseFrame(frame);
 
 		// Thread sleep for scheduling
-		std::this_thread::sleep_for(chrono::microseconds(50));
-
+		std::this_thread::sleep_for(chrono::microseconds(50));  // 50 at start
 		{
 			scoped_lock lock(m_mutex);
 			stopThread = m_stopThread;	
@@ -103,7 +101,7 @@ float Listener::convertParameter_to_SI(int x, float xMin, float xMax, int bitSiz
 	return value;
 }
 
-
+// Frame parsed in 3-10 us
 void Listener::parseFrame(can_frame frame)
 {
 	// Extract the motor ID from the received frame
@@ -130,7 +128,7 @@ void Listener::parseFrame(can_frame frame)
 	float torque = convertParameter_to_SI(torqueParameter, minTorque, maxTorque, 12);
 	int temperature = temperatureParameter;
 
-	// TODO: CHANGE SIGNS. 2-complements?
+	// Adjust signs for our reference
 	position = -position;
 	speed = -speed;
 	torque = -torque;

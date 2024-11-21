@@ -17,8 +17,8 @@
 
 #define MAX_CTR         2000
 #define CTRL_PERIOD_US  5000
-#define GOAL_TORQUE1    +0.1
-#define GOAL_TORQUE2    -0.1
+#define GOAL_TORQUE1    +0.2
+#define GOAL_TORQUE2    -0.2
 
 using namespace std;
 
@@ -59,15 +59,21 @@ int main()
     while (ctr < MAX_CTR) {
         // Get feedback
         timespec start = time_s();
-        /*robot.getCurrents(fbckCurrents);
 
-        cout << "Currents: "; 
+        /*motorHandler.getTorques(fbckTorques);
+
+        cout << "Torques: "; 
         for (int i=0; i<nbrMotors; i++) {
-            cout << fbckCurrents[i] << " A";
+            cout << fbckTorques[i] << " Nm";
             if (i != (nbrMotors-1))
                 cout << ", ";
         }
         cout << endl;*/
+
+        motorHandler.getFeedbacks(ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures);
+        cout << "Pos: " << fbckPositions[0] << " rad, speed: " << fbckSpeeds[0] <<
+        " rad/s, torque: " << fbckTorques[0] << " Nm, temp: " << fbckTemperatures[0] << " °C" << endl;
+
 
         // Send new goal currents
         if (ctr > MAX_CTR/2)
@@ -82,14 +88,12 @@ int main()
         timespec end = time_s();
         double elapsed = get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
-        if (toSleep_us < 0)
+        if (toSleep_us < 0) {
             toSleep_us = 0;
+            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+        }
         usleep(toSleep_us);
     }
-
-    /*cout << "Exiting MIT mode" << endl;
-    motorHandler.disableMotors();
-    sleep(1);*/
 
     return(1);
 }

@@ -64,7 +64,7 @@ int main()
         // Get feedback
         timespec start = time_s();
         
-        /*robot.getSpeeds(fbckSpeeds);
+        motorHandler.getSpeeds(fbckSpeeds);
 
         cout << "Speeds: "; 
         for (int i=0; i<nbrMotors; i++) {
@@ -72,7 +72,7 @@ int main()
             if (i != (nbrMotors-1))
                 cout << ", ";
         }
-        cout << endl;*/
+        cout << endl;
 
         // Send new goal speeds
         if (ctr > MAX_CTR/2)
@@ -87,14 +87,12 @@ int main()
         timespec end = time_s();
         double elapsed = get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
-        if (toSleep_us < 0)
+        if (toSleep_us < 0) {
             toSleep_us = 0;
+            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+        }
         usleep(toSleep_us);
     }
-
-    /*cout << "Exiting MIT mode" << endl;
-    motorHandler.disableMotors();
-    sleep(1);*/
 
     return(1);
 }

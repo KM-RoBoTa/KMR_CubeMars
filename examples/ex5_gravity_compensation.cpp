@@ -97,10 +97,6 @@ int main()
     motorHandler.setPositions(goalPositions, goalTorques);
     sleep(5);
 
-    // Ending program
-    /*motorHandler.disableMotors();
-    sleep(1);*/
-
     return(1);
 }
 
