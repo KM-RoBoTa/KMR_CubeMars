@@ -60,7 +60,10 @@ int main()
         // Get feedback
         timespec start = time_s();
 
-        /*motorHandler.getTorques(fbckTorques);
+        if (ctr == 0)
+            motorHandler.getTorques(fbckTorques, 0);
+        else    
+            motorHandler.getTorques(fbckTorques);
 
         cout << "Torques: "; 
         for (int i=0; i<nbrMotors; i++) {
@@ -68,12 +71,7 @@ int main()
             if (i != (nbrMotors-1))
                 cout << ", ";
         }
-        cout << endl;*/
-
-        motorHandler.getFeedbacks(ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures);
-        cout << "Pos: " << fbckPositions[0] << " rad, speed: " << fbckSpeeds[0] <<
-        " rad/s, torque: " << fbckTorques[0] << " Nm, temp: " << fbckTemperatures[0] << " °C" << endl;
-
+        cout << endl;
 
         // Send new goal currents
         if (ctr > MAX_CTR/2)
@@ -94,6 +92,11 @@ int main()
         }
         usleep(toSleep_us);
     }
+
+    motorHandler.getTemperatures(fbckTemperatures, 0);
+    cout << endl;
+    for (int i=0; i<nbrMotors; i++)
+        cout << "Motor " << ids[i] << "'s temperature is " << fbckTemperatures[i] << " °C" << endl;
 
     return(1);
 }

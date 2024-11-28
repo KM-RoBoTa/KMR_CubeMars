@@ -77,17 +77,22 @@ int Listener::listenerLoop(int s)
     while(!stopThread) {
 
         struct can_frame frame;
-        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 ust)
+        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us)
 
-        if (nbytes > 0)
+        if (nbytes > 0) {
 			parseFrame(frame);
 
+			// DEBUG
+			//timespec recvTime = time_s();
+            //cout << "Packet recv at " << recvTime.tv_sec << " sec, " << recvTime.tv_nsec << " ns" << endl;
+		}
+
 		// Thread sleep for scheduling
-		std::this_thread::sleep_for(chrono::microseconds(50));  // 50 at start
+		std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
 		{
 			scoped_lock lock(m_mutex);
 			stopThread = m_stopThread;	
-		}	
+		}
     }
 
     return 0;

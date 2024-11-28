@@ -162,16 +162,43 @@ int Writer::writeMITCommand(int id, float position, float speed, float Kp, float
     frame.data[6] = ((KdParam&0xF)<<4)| (torqueParam>>8);
     frame.data[7] = torqueParam&0xFF;
 
-    // DEBUG
+    // Print the packet
     /*cout << endl;
     for (int i=0; i<8; i++)
-        cout << "Data " << i << ": " << convertToHex(frame.data[i]) << endl;*/
+        cout << "Data " << i << ": 0x" << convertToHex(frame.data[i]) << endl;*/
+
+    // Send frame
+    int nbytes = -1;
+    nbytes = write(m_s, &frame, sizeof(can_frame));
+
+    // Save this packet to reuse it if feedback reading required 
+    if (nbytes > 0) {
+        m_motors[idx]->f_prevFrame = 1;
+        m_motors[idx]->prev_frame = frame;
+    }
+ 
+    return nbytes;           
+}
+
+// Required to get feedback during movement
+int Writer::writePreviousCommand(int id)
+{
+    int idx = getIndex(m_ids, id);
+    can_frame frame;
+    if (m_motors[idx]->f_prevFrame) {
+        frame = m_motors[idx]->prev_frame;
+        m_motors[idx]->f_prevFrame = 0;
+    }
+    else {
+        cout << "Error! The motor " << id << " has no previous frame to be resent" << endl;
+        exit(1);
+    }
 
     // Send frame
     int nbytes = -1;
     nbytes = write(m_s, &frame, sizeof(can_frame));
  
-    return nbytes;           
+    return nbytes;          
 }
 
 }

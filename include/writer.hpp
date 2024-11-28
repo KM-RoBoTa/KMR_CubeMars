@@ -34,6 +34,7 @@ public:
     int writeExitMITMode(int id);
     int writeZeroPosition(int id);
     int writeMITCommand(int id, float pos, float speed, float Kp, float Kd, float torque);
+    int writePreviousCommand(int id);
 
 private:
     int m_s; // Socket

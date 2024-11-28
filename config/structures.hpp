@@ -75,6 +75,10 @@ struct Motor {
     // CAN listener status flags
     bool fr_fbckReady = 0;
 
+    // Previous frame for getting feedback
+    can_frame prev_frame;
+    bool f_prevFrame = 0;
+
     // Constructor
     Motor(int id, Model model)
     {

@@ -70,17 +70,17 @@ public:
 
     // ------ Feedbacks ------ //
     bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
-                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
     bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
-                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures);
-    bool getPositions(std::vector<int> ids, std::vector<float>& fbckPositions);
-    bool getPositions(std::vector<float>& fbckPositions);
-    bool getSpeeds(std::vector<int> ids, std::vector<float>& fbckSpeeds);
-    bool getSpeeds(std::vector<float>& fbckSpeeds);
-    bool getTorques(std::vector<int> ids, std::vector<float>& fbckTorques);
-    bool getTorques(std::vector<float>& fbckTorques);
-    bool getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures);
-    bool getTemperatures(std::vector<int>& fbckTemperatures);
+                      std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
+    bool getPositions(std::vector<int> ids, std::vector<float>& fbckPositions, bool moving = 1);
+    bool getPositions(std::vector<float>& fbckPositions, bool moving = 1);
+    bool getSpeeds(std::vector<int> ids, std::vector<float>& fbckSpeeds, bool moving = 1);
+    bool getSpeeds(std::vector<float>& fbckSpeeds, bool moving = 1);
+    bool getTorques(std::vector<int> ids, std::vector<float>& fbckTorques, bool moving = 1);
+    bool getTorques(std::vector<float>& fbckTorques, bool moving = 1);
+    bool getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures, bool moving = 1);
+    bool getTemperatures(std::vector<int>& fbckTemperatures, bool moving = 1);
 
 private:
     Listener* m_listener = nullptr;

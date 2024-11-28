@@ -50,8 +50,6 @@ int main()
     sleep(1);
 
     // Main loop
-    cout << "Sending the command" << endl;
-
     cout << endl << endl << " ---------- Position control ---------" << endl;
     sleep(3);
     float angle = 0;
@@ -63,7 +61,10 @@ int main()
         // Get feedback
         timespec start = time_s();
 
-        motorHandler.getPositions(fbckPositions);
+        if (ctr == 0)
+            motorHandler.getPositions(fbckPositions, 0);
+        else    
+            motorHandler.getPositions(fbckPositions);
 
         cout << "Positions: "; 
         for (int i=0; i<nbrMotors; i++) {
@@ -76,11 +77,13 @@ int main()
         // Send new goal positions
         for (int i=0; i<nbrMotors; i++)
             goalPositions[i] = angle;
-        //timespec startCommand = time_s();
+        timespec startCommand = time_s();
         motorHandler.setPositions(goalPositions);
-        //timespec endCommand = time_s();
-        //double elapsedCommand = get_delta_us(endCommand, startCommand);
-        //cout << "Elapsed = " << elapsedCommand/1000.0 << " ms" << endl;
+        timespec endCommand = time_s();
+        double elapsedCommand = get_delta_us(endCommand, startCommand);
+
+        if (elapsedCommand > 1000)
+            cout << "Elapsed write = " << elapsedCommand << " us" << endl;
 
         // Update the goal angle for next loop
         if (forward) {
@@ -108,11 +111,16 @@ int main()
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;
-            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+            //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
 
         usleep(toSleep_us);
     }
+
+    motorHandler.getTemperatures(fbckTemperatures, 0);
+    cout << endl;
+    for (int i=0; i<nbrMotors; i++)
+        cout << "Motor " << ids[i] << "'s temperature is " << fbckTemperatures[i] << " °C" << endl;
 
     return(1);
 }

@@ -78,6 +78,16 @@ double get_delta_us(struct timespec t2, struct timespec t1)
     return(td.tv_sec*1000000 + td.tv_nsec/1000);
 }
 
+timespec convert_to_timespec(timeval tv)
+{
+    timespec td;
+
+    td.tv_sec = tv.tv_sec;
+    td.tv_nsec = tv.tv_usec*1000;
+    return td;
+}
+
+
 std::string convertToHex(int dec) 
 {
     std::stringstream ss;

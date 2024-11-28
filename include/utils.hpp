@@ -27,6 +27,7 @@ float rad2deg(float rad);
 
 timespec time_s();
 double get_delta_us(struct timespec t2, struct timespec t1);
+timespec convert_to_timespec(timeval tv);
 std::string convertToHex(int dec) ;
 
 

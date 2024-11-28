@@ -17,8 +17,8 @@
 
 #define MAX_CTR         2000
 #define CTRL_PERIOD_US  5000
-#define GOAL_SPEED1      -2*M_PI/3
-#define GOAL_SPEED2      +2*M_PI/2
+#define GOAL_SPEED1     -2*M_PI/3
+#define GOAL_SPEED2     +2*M_PI/2
 
 using namespace std;
 
@@ -64,7 +64,10 @@ int main()
         // Get feedback
         timespec start = time_s();
         
-        motorHandler.getSpeeds(fbckSpeeds);
+        if (ctr == 0)
+            motorHandler.getSpeeds(fbckSpeeds, 0);
+        else 
+            motorHandler.getSpeeds(fbckSpeeds);
 
         cout << "Speeds: "; 
         for (int i=0; i<nbrMotors; i++) {
@@ -93,6 +96,11 @@ int main()
         }
         usleep(toSleep_us);
     }
+
+    motorHandler.getTemperatures(fbckTemperatures, 0);
+    cout << endl;
+    for (int i=0; i<nbrMotors; i++)
+        cout << "Motor " << ids[i] << "'s temperature is " << fbckTemperatures[i] << " °C" << endl;
 
     return(1);
 }
