@@ -96,4 +96,6 @@ build/
 # Generated doxygen doc folder
 generated_docs/
 
-
+# csv and png files from the PID tuning
+python_scripts/*.csv
+python_scripts/*.png
