@@ -229,6 +229,9 @@ bool MotorHandler::setZeroPosition(vector<int> ids)
         fullSuccess += success;
     }
 
+    // Maintain the position 
+    bool success2 = maintainPosition(ids, 0);
+
     // If no timeout for any motor, return 1. Else, return 0
     if (fullSuccess == ids.size())
         return 1;
@@ -451,6 +454,24 @@ bool MotorHandler::stopMotor(int id)
 {
     vector<int> ids(1, id);
     return(stopMotors(ids));
+}
+
+bool MotorHandler::maintainPosition(vector<int> ids, bool moving)
+{
+    vector<float> fbckPositions(ids.size(), 0);
+    bool success = getPositions(ids, fbckPositions, moving);
+    if (!success) {
+        cout << "Error! Could not get fbck positions to maintain position" << endl;
+        return 0;
+    }
+
+    success = setPositions(ids, fbckPositions);
+    return success;
+}
+
+bool MotorHandler::maintainPosition(bool moving)
+{
+    return(maintainPosition(m_ids, moving));
 }
 
 

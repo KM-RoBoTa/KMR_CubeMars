@@ -68,6 +68,9 @@ public:
     bool setTorques(std::vector<int> ids, std::vector<float> torques);
     bool setTorques(std::vector<float> torques);
 
+    bool maintainPosition(std::vector<int> ids, bool moving = 1);
+    bool maintainPosition(bool moving = 1);
+
     // ------ Feedbacks ------ //
     bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
                       std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
