@@ -164,6 +164,7 @@ int Writer::writeMITCommand(int id, float position, float speed, float Kp, float
 
     // Print the packet
     /*cout << endl;
+    cout << "ID: " << frame.can_id << endl;
     for (int i=0; i<8; i++)
         cout << "Data " << i << ": 0x" << convertToHex(frame.data[i]) << endl;*/
 
