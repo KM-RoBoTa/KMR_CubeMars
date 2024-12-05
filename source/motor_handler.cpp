@@ -282,8 +282,8 @@ bool MotorHandler::setImpedance(vector<float> positions, vector<float> speeds,
 
 bool MotorHandler::setPositions(vector<int> ids, vector<float> positions)
 {
-    vector<float> Kps(ids.size());
-    vector<float> Kds(ids.size());
+    vector<float> Kps(ids.size(), 0);
+    vector<float> Kds(ids.size(), 0);
     vector<float> speeds(ids.size(), 0);
     vector<float> torques(ids.size(), 0);
 
@@ -320,12 +320,13 @@ bool MotorHandler::setPositions(vector<float> positions)
 
 bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector<float> torques)
 {
-    vector<float> Kps(ids.size());
-    vector<float> Kds(ids.size());
+    vector<float> Kps(ids.size(), 0);
+    vector<float> Kds(ids.size(), 0);
     vector<float> speeds(ids.size(), 0);
 
     // Fetch the previously set Kp and Kd for each motor
-    for(auto id : ids) {
+    for (int i=0; i<ids.size(); i++) {
+        int id = ids[i];
         int idx = getIndex(m_ids, id);
         float Kp = m_motors[idx]->Kp;
         if (Kp < 0) {
@@ -333,7 +334,7 @@ bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector
             exit(1);
         }
         else 
-            Kps[idx] = Kp;
+            Kps[i] = Kp;
 
         float Kd = m_motors[idx]->Kd;
         if (Kd < 0) {
@@ -341,7 +342,7 @@ bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector
             exit(1);
         }
         else 
-            Kds[idx] = Kd;
+            Kds[i] = Kd;
     }
 
     // Send the command
@@ -358,12 +359,13 @@ bool MotorHandler::setPositions(vector<float> positions, vector<float> torques)
 bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds)
 {
     vector<float> Kps(ids.size(), 0);
-    vector<float> Kds(ids.size());
+    vector<float> Kds(ids.size(), 0);
     vector<float> positions(ids.size(), 0);
     vector<float> torques(ids.size(), 0);
 
     // Fetch the previously set Kd for each motor
-    for(auto id : ids) {
+    for (int i=0; i<ids.size(); i++) {
+        int id = ids[i];
         int idx = getIndex(m_ids, id);
 
         float Kd = m_motors[idx]->Kd;
@@ -372,7 +374,7 @@ bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds)
             exit(1);
         }
         else 
-            Kds[idx] = Kd;
+            Kds[i] = Kd;
     }
 
     // Send the command
@@ -391,8 +393,9 @@ bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds, vector<float
     vector<float> Kds(ids.size());
     vector<float> positions(ids.size(), 0);
 
-    // Fetch the previously set Kp and Kd for each motor
-    for(auto id : ids) {
+    // Fetch the previously set Kd for each motor
+    for (int i=0; i<ids.size(); i++) {
+        int id = ids[i];
         int idx = getIndex(m_ids, id);
 
         float Kd = m_motors[idx]->Kd;
@@ -401,7 +404,7 @@ bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds, vector<float
             exit(1);
         }
         else 
-            Kds[idx] = Kd;
+            Kds[i] = Kd;
     }
 
     // Send the command
