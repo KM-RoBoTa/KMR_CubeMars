@@ -21,13 +21,13 @@ if (DOXYGEN_FOUND)
     message("Doxygen build started")
 
     # Note the option ALL which allows to build the docs together with the application
-    add_custom_target(dxl_docs ALL
+    add_custom_target(cubemars_docs ALL
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../docs/generated_docs
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM )
 else (DOXYGEN_FOUND)
-    message("Doxygen need to be installed to generate the doxygen documentation")
+    message("Doxygen needs to be installed to generate the doxygen documentation")
 endif (DOXYGEN_FOUND)
 
 
