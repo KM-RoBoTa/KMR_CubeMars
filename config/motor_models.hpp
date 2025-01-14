@@ -18,6 +18,9 @@
 namespace KMR::CBM
 {
 
+/**
+ * @brief   Base control table of CubeMars motors, inherited by specific models
+ */
 struct ModelParameters {
     float minPosition = -12.5;
     float maxPosition = 12.5;

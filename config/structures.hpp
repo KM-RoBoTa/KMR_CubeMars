@@ -26,10 +26,16 @@
 namespace KMR::CBM
 {
 
+/**
+ * @brief   Motor operating modes
+ */
 enum class OperatingMode {
     MIT
 };
 
+/**
+ * @brief   Supported models by this library
+ */
 enum class Model {
     AK10_9 = 0,
     AK60_6 = 1,
@@ -42,9 +48,8 @@ enum class Model {
 };
 
 
-
 /**
- * @brief   Structure saving the info of a data field
+ * @brief   Structure saving the info of a motor
  */
 struct Motor {
     int id;

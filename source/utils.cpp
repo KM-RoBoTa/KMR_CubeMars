@@ -18,7 +18,13 @@
 
 using namespace std;
 
-// Function to return the index of an element k
+
+/**
+ * @brief       Return the index of an element k
+ * @param[in]   v Query vector
+ * @param[in]   k Element to be looked for in the vector
+ * @return      Index of k in the vector. Equal to -1 if element not in vector
+ */
 int getIndex(std::vector<int> v, int k) 
 { 
     auto it = std::find(v.begin(), v.end(), k); 
@@ -30,11 +36,21 @@ int getIndex(std::vector<int> v, int k)
     return index;
 } 
 
+/**
+ * @brief       Convert an angle from degrees to radians
+ * @param[in]   deg Input angle [°]
+ * @return      Angle in radians
+ */
 float deg2rad(float deg)
 {
     return (deg * M_PI / 180.0);
 }
 
+/**
+ * @brief       Convert an angle from radians to degrees
+ * @param[in]   rad Input angle [rad]
+ * @return      Angle in degrees
+ */
 float rad2deg(float rad)
 {
     return (rad * 180 / M_PI);
@@ -61,7 +77,7 @@ timespec time_s()
 /**
  * @brief       Get elapsed time, in microseconds
  * @param[in]   t2 End time structure (gotten with time_s)
- * @param[in]   t2 Start time structure (gotten with time_s)
+ * @param[in]   t1 Start time structure (gotten with time_s)
  * @return      Elapsed time between t1 and t2, in us
  */
 double get_delta_us(struct timespec t2, struct timespec t1)
@@ -78,6 +94,11 @@ double get_delta_us(struct timespec t2, struct timespec t1)
     return(td.tv_sec*1000000 + td.tv_nsec/1000);
 }
 
+/**
+ * @brief       Convert the timeval input to a timespec structure
+ * @param[in]   tv Time encoded in a timeval structure
+ * @return      Time converted into a timespec structure
+ */
 timespec convert_to_timespec(timeval tv)
 {
     timespec td;
@@ -87,7 +108,11 @@ timespec convert_to_timespec(timeval tv)
     return td;
 }
 
-
+/**
+ * @brief       Convert a decimal number into hex, gotten in a string
+ * @param[in]   dec Query decimal value
+ * @return      String containing the value in hex
+ */
 std::string convertToHex(int dec) 
 {
     std::stringstream ss;

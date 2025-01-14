@@ -18,7 +18,6 @@
 #include <iostream>
 #include <unistd.h> // Provides the usleep function
 
-// Function to return the index of an element k
 int getIndex(std::vector<int> v, int k);
 
 float deg2rad(float deg);
@@ -31,6 +30,13 @@ timespec convert_to_timespec(timeval tv);
 std::string convertToHex(int dec) ;
 
 
+/**
+ * @brief       Saturate the query value between a min and max value
+ * @param[in]   min Minimal value
+ * @param[in]   max Maximum value
+ * @param[in]   val Query value
+ * @return      Saturated value
+ */
 template<typename T>
 T saturate(T min, T max, T val)
 {
@@ -40,20 +46,6 @@ T saturate(T min, T max, T val)
         return max;
     else
         return val;
-}
-
-// Result between -b and +b
-template<typename T>
-T modulo(T a, T b)
-{
-    if (b == 0) {
-        std::cout << "Error! Modulo by 0" << std::endl;
-        exit(1);
-    }
-
-    int k = (int)( (float)a /(float)b );
-    std::cout << "k = " << k << std::endl;
-    return (a-k*b);
 }
 
 #endif

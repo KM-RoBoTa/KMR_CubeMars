@@ -31,6 +31,10 @@ namespace KMR::CBM
 
 /**
  * @brief       Start the CAN bus listener
+ * @details		The listener works in its own thread, created on constructor call. 
+ * 				The thread is safely stopped on destructor call
+ * @param[in]	motors List of CubeMars motors models
+ * @param[in]	ids IDs of the motors
  * @param[in]   s Socket
  */
 Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
@@ -64,7 +68,7 @@ Listener::~Listener()
 }
 
 /**
- * @brief       
+ * @brief       Function executed by the Listener thread
  * @param[in]   s Socket
  * @retval      1 when the thread is finished
  */
@@ -72,20 +76,14 @@ int Listener::listenerLoop(int s)
 {
 	bool stopThread = 0;
 
-	// -----  Start of the main loop -----
 	cout << "Starting CAN bus monitoring" << endl;
     while(!stopThread) {
 
         struct can_frame frame;
-        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us)
+        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us
 
-        if (nbytes > 0) {
+        if (nbytes > 0)
 			parseFrame(frame);
-
-			// DEBUG
-			//timespec recvTime = time_s();
-            //cout << "Packet recv at " << recvTime.tv_sec << " sec, " << recvTime.tv_nsec << " ns" << endl;
-		}
 
 		// Thread sleep for scheduling
 		std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
@@ -98,6 +96,14 @@ int Listener::listenerLoop(int s)
     return 0;
 }
 
+/**
+ * 	@brief 		Convert a parameter received from motors to SI units
+ * 	@param[in] 	x Value to be converted to SI
+ * 	@param[in] 	xMin Minimum value that the converted parameter can take 
+ * 	@param[in] 	xMax Maximum value that the converted parameter can take 
+ * 	@param[in] 	bitSize Number of bits encoding the parameter
+ * 	@return 	Parameter converted to SI units
+ */ 
 float Listener::convertParameter_to_SI(int x, float xMin, float xMax, int bitSize)
 {
 	float span = xMax - xMin;
@@ -106,7 +112,11 @@ float Listener::convertParameter_to_SI(int x, float xMin, float xMax, int bitSiz
 	return value;
 }
 
-// Frame parsed in 3-10 us
+
+/**
+ * 	@brief 		Parse a received frame
+ * 	@param[in] 	frame CAN frame received on the bus
+ */ 
 void Listener::parseFrame(can_frame frame)
 {
 	// Extract the motor ID from the received frame
@@ -148,6 +158,12 @@ void Listener::parseFrame(can_frame frame)
 	m_motors[idx]->fr_fbckReady = 1;
 }
 
+
+/**
+ * @brief       Check if the query motor sent the response to a previous command
+ * @param[in]   id ID of the query motor
+ * @retval      1 if the motor answered, 0 if not (timeout)
+ */
 bool Listener::fbckReceived(int id)
 {
 	int idx = getIndex(m_ids, id);
@@ -173,6 +189,16 @@ bool Listener::fbckReceived(int id)
 	return available;		
 }
 
+
+/**
+ * @brief       Get the feedbacks from a query motor, if it was received
+ * @param[in]   id ID of the query motor
+ * @param[out]	fbckPosition Feedback motor position [rad]
+ * @param[out]	fbckSpeed Feedback motor speed [rad/s]
+ * @param[out]	fbckTorque Feedback torque [Nm]
+ * @param[out]	fbckTemperature Feedback temperature [°C]
+ * @retval      1 if the motor answered (= valid fbck), 0 if not (timeout)
+ */
 bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 							float& fbckTorque, int& fbckTemperature)
 {

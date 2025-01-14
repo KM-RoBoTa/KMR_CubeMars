@@ -24,7 +24,7 @@ namespace KMR::CBM
 {
 
 /**
- * @brief   CAN bus listener, running in its own thread
+ * @brief   Highest-level class that manages all communication with the motors
  */
 class MotorHandler {
 public:
@@ -32,10 +32,12 @@ public:
     ~MotorHandler();
 
     // ------ Setting parameters ------ //
+
     void setKps(std::vector<int> ids, std::vector<float> Kps);
     void setKds(std::vector<int> ids, std::vector<float> Kds);
 
     // ------ Enabling/disabling + 0 setting ------ //
+
     bool enableMotors();
     bool enableMotors(std::vector<int> ids);
     bool disableMotors();
@@ -50,9 +52,10 @@ public:
     bool setZeroPosition(int id);
 
     // ------ Control commands ------ //
-    bool setImpedance(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
+
+    bool setCommand(std::vector<int> ids, std::vector<float> positions, std::vector<float> speeds,
                          std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
-    bool setImpedance(std::vector<float> positions, std::vector<float> speeds,
+    bool setCommand(std::vector<float> positions, std::vector<float> speeds,
                          std::vector<float> Kps, std::vector<float> Kds, std::vector<float> torques);
   
     bool setPositions(std::vector<int> ids, std::vector<float> positions);
@@ -72,6 +75,7 @@ public:
     bool maintainPosition(bool moving = 1);
 
     // ------ Feedbacks ------ //
+
     bool getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
                       std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
     bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,

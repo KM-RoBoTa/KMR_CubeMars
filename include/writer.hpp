@@ -30,6 +30,7 @@ public:
     ~Writer();
 
     // PID settings
+    
     int writeEnterMITMode(int id);
     int writeExitMITMode(int id);
     int writeZeroPosition(int id);

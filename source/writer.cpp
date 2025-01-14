@@ -23,8 +23,10 @@ namespace KMR::CBM
 {
 
 /**
- * @brief       Create the CAN writer
- * @param[in]   s Socket
+ * @brief       Constructor for the CAN writer
+ * @param[in]   motors List of all CubeMars motors
+ * @param[in]   ids IDs of all motors
+ * @param[in]   s CAN socket
  */
 Writer::Writer(vector<Motor*> motors, vector<int> ids, int s)
 {
@@ -43,6 +45,14 @@ Writer::~Writer()
 }
 
 
+/**
+ * 	@brief 		Convert input value from SI units to motor parameter
+ * 	@param[in] 	x Value to be converted to a parameter
+ * 	@param[in] 	xMin Minimum value that the input value can take 
+ * 	@param[in] 	xMax Maximum value that the input value can take 
+ * 	@param[in] 	bitSize Number of bits encoding the parameter
+ * 	@return 	Input value converted to uin32t_t
+ */ 
 uint32_t Writer::convertSI_to_parameter(float x, float xMin, float xMax, uint bitSize)
 {
     float span = xMax - xMin;
@@ -58,7 +68,11 @@ uint32_t Writer::convertSI_to_parameter(float x, float xMin, float xMax, uint bi
  *                               Motor infos
  ****************************************************************************/
 
-
+/**
+ * 	@brief 		Send the "enter MIT mode" command to the input motor
+ * 	@param[in] 	id ID of the target motor
+ * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
+ */ 
 int Writer::writeEnterMITMode(int id)
 {
     struct can_frame frame;
@@ -80,6 +94,11 @@ int Writer::writeEnterMITMode(int id)
     return nbytes;        
 }
 
+/**
+ * 	@brief 		Send the "exit MIT mode" command to the input motor
+ * 	@param[in] 	id ID of the target motor
+ * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
+ */ 
 int Writer::writeExitMITMode(int id)
 {
     struct can_frame frame;
@@ -101,6 +120,11 @@ int Writer::writeExitMITMode(int id)
     return nbytes;        
 }
 
+/**
+ * 	@brief 		Send the "set zero position" command to the input motor
+ * 	@param[in] 	id ID of the target motor
+ * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
+ */ 
 int Writer::writeZeroPosition(int id)
 {
     struct can_frame frame;
@@ -122,6 +146,16 @@ int Writer::writeZeroPosition(int id)
     return nbytes;       
 }
 
+/**
+ * 	@brief 		Send the MIT control command to the input motor
+ * 	@param[in] 	id ID of the target motor
+ *  @param[in]  position Goal position [rad]
+ *  @param[in]  speed Goal speed [rad/s]
+ *  @param[in]  Kp Factor for position difference
+ *  @param[in]  Kd Factor for speeds difference
+ *  @param[in]  torque Goal torue [Nm]
+ * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
+ */ 
 int Writer::writeMITCommand(int id, float position, float speed, float Kp, float Kd, float torque)
 {
     // Change the signs from our custom reference to CubeMars' driver definition
@@ -181,7 +215,13 @@ int Writer::writeMITCommand(int id, float position, float speed, float Kp, float
     return nbytes;           
 }
 
-// Required to get feedback during movement
+
+/**
+ * 	@brief 		Resend previous command
+ *  @note       This is used (and required) to get feedback during movement
+ * 	@param[in] 	id ID of the target motor
+ * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
+ */ 
 int Writer::writePreviousCommand(int id)
 {
     int idx = getIndex(m_ids, id);
