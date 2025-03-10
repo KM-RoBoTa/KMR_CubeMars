@@ -228,11 +228,12 @@ bool MotorHandler::enableMotors()
  */ 
 bool MotorHandler::disableMotors(vector<int> ids)
 {
-    // Stop the motors first
+    // Stop the motors first ("parking" mode)
     bool success = stopMotors(ids);
     if (!success)
         cout << "Error! The motors were not stopped correctly. Power them down after end of program" << endl;
 
+    // Exit the MIT mode
     for(auto id : ids) {
         if(m_writer->writeExitMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send the disabling command to motor " << id << endl;
@@ -261,7 +262,8 @@ bool MotorHandler::disableMotors()
 }
 
 /**
- *  @brief      Stop input motors: speed, position and torque set to 0
+ *  @brief      Stop input motors: all inputs set to 0
+ *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @param[in]  ids IDs of the motors to stop
  *  @retval     1 if motors successfully stopped, 0 otherwise
  */ 
@@ -279,7 +281,8 @@ bool MotorHandler::stopMotors(vector<int> ids)
 }
 
 /**
- *  @brief      Stop all motors: speed, position and torque set to 0
+ *  @brief      Stop all motors: all inputs set to 0
+ *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @retval     1 if motors successfully stopped, 0 otherwise
  */ 
 bool MotorHandler::stopMotors()
@@ -288,7 +291,8 @@ bool MotorHandler::stopMotors()
 }
 
 /**
- *  @brief      Stop a motor: speed, position and torque set to 0
+ *  @brief      Stop a motor: all inputs set to 0
+ *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @retval     1 if motor successfully stopped, 0 otherwise
  */ 
 bool MotorHandler::stopMotor(int id)
@@ -306,6 +310,14 @@ bool MotorHandler::stopMotor(int id)
  */ 
 bool MotorHandler::setZeroPosition(vector<int> ids)
 {
+    // Stop the motors before setting their 0-position ("parking mode")
+    bool motorsStopped = stopMotors(ids);
+    if (!motorsStopped) {
+        cout << "[FAILED REQUEST] Failed to stop all motors before setting their zero" << endl;
+        return 0; 
+    }
+
+    // Send the 0-setting command
     for(auto id : ids) {
         if(m_writer->writeZeroPosition(id) < 0)
             cout << "[FAILED REQUEST] Failed to send zero-position to motor " << id << endl;

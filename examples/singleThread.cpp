@@ -124,10 +124,10 @@ void enterMITMode(int id)
 
     // Send frame
     int nbytes = -1;
-    timespec startWrite = time_s();
+    timespec startWrite = KMR::CBM::time_s();
     nbytes = write(s, &frame, sizeof(can_frame));
-    timespec endWrite = time_s();
-    double written = get_delta_us(endWrite, startWrite);
+    timespec endWrite = KMR::CBM::time_s();
+    double written = KMR::CBM::get_delta_us(endWrite, startWrite);
     cout << endl << "Sent MIT enter in " << written << " us" << endl;
 
     if (nbytes < 0)
@@ -135,7 +135,7 @@ void enterMITMode(int id)
 
     nbytes = -1;
     // Receive frame
-    timespec startConfirm = time_s();
+    timespec startConfirm = KMR::CBM::time_s();
     while(nbytes < 0) {
         nbytes = read(s, &frame, sizeof(can_frame));
 
@@ -160,10 +160,10 @@ void enterMITMode(int id)
 
     struct timeval tv;
     ioctl (s, SIOCGSTAMP, &tv);
-    timespec endConfirmCAN = convert_to_timespec(tv);
-    timespec endConfirm = time_s();
-    double confirm = get_delta_us(endConfirm, startConfirm);
-    double confirmCAN = get_delta_us(endConfirmCAN, startConfirm);
+    timespec endConfirmCAN = KMR::CBM::convert_to_timespec(tv);
+    timespec endConfirm = KMR::CBM::time_s();
+    double confirm = KMR::CBM::get_delta_us(endConfirm, startConfirm);
+    double confirmCAN = KMR::CBM::get_delta_us(endConfirmCAN, startConfirm);
     cout << "MIT entrance confirm received in " << confirm << " us" << endl;
     cout << "CAN MIT entrance confirm received in " << confirmCAN << " us" << endl;
 }
@@ -185,10 +185,10 @@ void exitMITMode(int id)
 
     // Send frame
     int nbytes = -1;
-    timespec startWrite = time_s();
+    timespec startWrite = KMR::CBM::time_s();
     nbytes = write(s, &frame, sizeof(can_frame));
-    timespec endWrite = time_s();
-    double written = get_delta_us(endWrite, startWrite);
+    timespec endWrite = KMR::CBM::time_s();
+    double written = KMR::CBM::get_delta_us(endWrite, startWrite);
     cout << endl << "Sent MIT exit in " << written << " us" << endl;
 
     if (nbytes < 0)
@@ -196,7 +196,7 @@ void exitMITMode(int id)
 
     nbytes = -1;
     // Receive frame
-    timespec startConfirm = time_s();
+    timespec startConfirm = KMR::CBM::time_s();
     while(nbytes < 0) {
         nbytes = read(s, &frame, sizeof(struct can_frame));
         if (nbytes == 0)
@@ -218,8 +218,8 @@ void exitMITMode(int id)
             cout << "Exited MIT mode" << endl;
         }
     }
-    timespec endConfirm = time_s();
-    double confirm = get_delta_us(endConfirm, startConfirm);
+    timespec endConfirm = KMR::CBM::time_s();
+    double confirm = KMR::CBM::get_delta_us(endConfirm, startConfirm);
     cout << "MIT exit confirm received in " << confirm << " us" << endl;
 }
 
@@ -239,17 +239,17 @@ void setZeroPosition(int id)
 
     // Send frame
     int nbytes = -1;
-    timespec startWrite = time_s();
+    timespec startWrite = KMR::CBM::time_s();
     nbytes = write(s, &frame, sizeof(can_frame));
-    timespec endWrite = time_s();
-    double written = get_delta_us(endWrite, startWrite);
+    timespec endWrite = KMR::CBM::time_s();
+    double written = KMR::CBM::get_delta_us(endWrite, startWrite);
     cout << endl << "Sent zero position in " << written << " us" << endl;
     if (nbytes < 0)
         cout << "Error sending zero position" << endl;
 
     nbytes = -1;
     // Receive frame
-    timespec startConfirm = time_s();
+    timespec startConfirm = KMR::CBM::time_s();
     while(nbytes < 0) {
         nbytes = read(s, &frame, sizeof(struct can_frame));
 
@@ -272,8 +272,8 @@ void setZeroPosition(int id)
             cout << "Zero position set" << endl;
         }
     }
-    timespec endConfirm = time_s();
-    double confirm = get_delta_us(endConfirm, startConfirm);
+    timespec endConfirm = KMR::CBM::time_s();
+    double confirm = KMR::CBM::get_delta_us(endConfirm, startConfirm);
     cout << "Zero position confirm received in " << confirm << " us" << endl;
 }
 
@@ -293,17 +293,17 @@ void stopMotor(int id)
 
     // Send frame
     int nbytes = -1;
-    timespec startWrite = time_s();
+    timespec startWrite = KMR::CBM::time_s();
     nbytes = write(s, &frame, sizeof(can_frame));
-    timespec endWrite = time_s();
-    double written = get_delta_us(endWrite, startWrite);
+    timespec endWrite = KMR::CBM::time_s();
+    double written = KMR::CBM::get_delta_us(endWrite, startWrite);
 
     if (nbytes < 0)
         cout << "Error sending stop command" << endl;
 
     nbytes = -1;
     // Receive frame
-    timespec startConfirm = time_s();
+    timespec startConfirm = KMR::CBM::time_s();
     while(nbytes < 0) {
         nbytes = read(s, &frame, sizeof(can_frame));
 
@@ -328,10 +328,10 @@ void stopMotor(int id)
 
     struct timeval tv;
     ioctl (s, SIOCGSTAMP, &tv);
-    timespec endConfirmCAN = convert_to_timespec(tv);
-    timespec endConfirm = time_s();
-    double confirm = get_delta_us(endConfirm, startConfirm);
-    double confirmCAN = get_delta_us(endConfirmCAN, startConfirm);
+    timespec endConfirmCAN = KMR::CBM::convert_to_timespec(tv);
+    timespec endConfirm = KMR::CBM::time_s();
+    double confirm = KMR::CBM::get_delta_us(endConfirm, startConfirm);
+    double confirmCAN = KMR::CBM::get_delta_us(endConfirmCAN, startConfirm);
 
     if (confirm > 1000 || confirmCAN > 1000) {
         cout << "Stopping received in " << confirm << " us" << endl;

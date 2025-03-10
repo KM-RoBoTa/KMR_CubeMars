@@ -42,7 +42,7 @@ int main()
     int ctr = 0;
     const int maxCtr = 1000; 
     while(ctr < maxCtr) {
-        timespec start = time_s();
+        timespec start = KMR::CBM::time_s();
 
         motorHandler.getFeedbacks(ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures);
         cout << "Pos: " << fbckPositions[0] << " rad, speed: " << fbckSpeeds[0] <<
@@ -55,8 +55,8 @@ int main()
         motorHandler.setCommand(ids, positions, speeds, Kps, Kds, torques);
         ctr++;
 
-        timespec end = time_s();
-        double elapsed = get_delta_us(end, start);
+        timespec end = KMR::CBM::time_s();
+        double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0)
             toSleep_us = 0;

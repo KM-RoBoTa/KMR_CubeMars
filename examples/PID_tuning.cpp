@@ -99,7 +99,7 @@ int main()
     // Main loop
     while (ctr < MAX_CTR) {
         // Get feedback
-        timespec start = time_s();
+        timespec start = KMR::CBM::time_s();
 
         if (ctr == 200)
             impulse = AVG_IMPULSE;
@@ -126,8 +126,8 @@ int main()
         // Increment counter and set the control loop to 5ms
         ctr++;
 
-        timespec end = time_s();
-        double elapsed = get_delta_us(end, start);
+        timespec end = KMR::CBM::time_s();
+        double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;
@@ -170,10 +170,10 @@ int main()
     ctr = 0;
 
     // Main loop
-    timespec startTracking = time_s();
+    timespec startTracking = KMR::CBM::time_s();
     while (ctr < MAX_CTR) {
         // Get feedback
-        timespec start = time_s();
+        timespec start = KMR::CBM::time_s();
 
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
@@ -182,8 +182,8 @@ int main()
 
         //time = ctr * CTRL_PERIOD_US/1000000.0;
 
-        timespec now = time_s();
-        double elapsedTracking = get_delta_us(now, startTracking); 
+        timespec now = KMR::CBM::time_s();
+        double elapsedTracking = KMR::CBM::get_delta_us(now, startTracking); 
         time = elapsedTracking/1000000.0;
 
         // Save fbck position, command and time, Kp, Kd
@@ -215,8 +215,8 @@ int main()
         // Increment counter and set the control loop to 5ms
         ctr++;
 
-        timespec end = time_s();
-        double elapsed = get_delta_us(end, start);
+        timespec end = KMR::CBM::time_s();
+        double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;

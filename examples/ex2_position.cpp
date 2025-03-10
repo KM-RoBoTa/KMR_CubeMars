@@ -59,7 +59,7 @@ int main()
     // Main loop
     while (ctr < MAX_CTR) {
         // Get feedback
-        timespec start = time_s();
+        timespec start = KMR::CBM::time_s();
 
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
@@ -77,10 +77,10 @@ int main()
         // Send new goal positions
         for (int i=0; i<nbrMotors; i++)
             goalPositions[i] = angle;
-        timespec startCommand = time_s();
+        timespec startCommand = KMR::CBM::time_s();
         motorHandler.setPositions(goalPositions);
-        timespec endCommand = time_s();
-        double elapsedCommand = get_delta_us(endCommand, startCommand);
+        timespec endCommand = KMR::CBM::time_s();
+        double elapsedCommand = KMR::CBM::get_delta_us(endCommand, startCommand);
 
         if (elapsedCommand > 1000)
             cout << "Elapsed write = " << elapsedCommand << " us" << endl;
@@ -106,8 +106,8 @@ int main()
         // Increment counter and set the control loop to 5ms
         ctr++;
 
-        timespec end = time_s();
-        double elapsed = get_delta_us(end, start);
+        timespec end = KMR::CBM::time_s();
+        double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;

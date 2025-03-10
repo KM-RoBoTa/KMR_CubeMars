@@ -19,6 +19,9 @@
 using namespace std;
 
 
+namespace KMR::CBM
+{
+
 /**
  * @brief       Return the index of an element k
  * @param[in]   v Query vector
@@ -120,4 +123,6 @@ std::string convertToHex(int dec)
     std::string res ( ss.str() );
 
     return res;
+}
+
 }

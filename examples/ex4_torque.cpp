@@ -58,7 +58,7 @@ int main()
 
     while (ctr < MAX_CTR) {
         // Get feedback
-        timespec start = time_s();
+        timespec start = KMR::CBM::time_s();
 
         if (ctr == 0)
             motorHandler.getTorques(fbckTorques, 0);
@@ -83,8 +83,8 @@ int main()
         // Increment counter and set the control loop to 5ms
         ctr++;
 
-        timespec end = time_s();
-        double elapsed = get_delta_us(end, start);
+        timespec end = KMR::CBM::time_s();
+        double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;

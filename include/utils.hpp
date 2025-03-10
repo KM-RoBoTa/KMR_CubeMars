@@ -18,6 +18,9 @@
 #include <iostream>
 #include <unistd.h> // Provides the usleep function
 
+namespace KMR::CBM
+{
+
 int getIndex(std::vector<int> v, int k);
 
 float deg2rad(float deg);
@@ -46,6 +49,8 @@ T saturate(T min, T max, T val)
         return max;
     else
         return val;
+}
+
 }
 
 #endif
