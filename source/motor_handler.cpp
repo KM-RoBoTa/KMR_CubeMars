@@ -188,7 +188,7 @@ void MotorHandler::setKds(vector<int> ids, vector<float> Kds)
  ****************************************************************************/
 
 /**
- *  @brief      Enable the input motors
+ *  @brief      Enable the input motors: enter MIT mode
  *  @param[in]  ids Motor IDs to be enabled
  *  @retval     1 if motors successfully enabled, 0 otherwise
  */ 
@@ -213,7 +213,7 @@ bool MotorHandler::enableMotors(vector<int> ids)
 }
 
 /**
- *  @brief      Enable all motors
+ *  @brief      Enable all motors: enter MIT modes
  *  @retval     1 if motors successfully enabled, 0 otherwise
  */ 
 bool MotorHandler::enableMotors()
@@ -222,7 +222,7 @@ bool MotorHandler::enableMotors()
 }
 
 /**
- *  @brief      Disable the input motors
+ *  @brief      Disable the input motors: exit MIT mode
  *  @param[in]  ids Motor IDs to be disabled
  *  @retval     1 if motors successfully disabled, 0 otherwise
  */ 
@@ -253,7 +253,7 @@ bool MotorHandler::disableMotors(vector<int> ids)
 }
 
 /**
- *  @brief      Disable all motors
+ *  @brief      Disable all motors: exit MIT mode
  *  @retval     1 if motors successfully disabled, 0 otherwise
  */ 
 bool MotorHandler::disableMotors()
@@ -262,7 +262,7 @@ bool MotorHandler::disableMotors()
 }
 
 /**
- *  @brief      Stop input motors: all inputs set to 0
+ *  @brief      Stop input motors: torque off
  *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @param[in]  ids IDs of the motors to stop
  *  @retval     1 if motors successfully stopped, 0 otherwise
@@ -281,7 +281,7 @@ bool MotorHandler::stopMotors(vector<int> ids)
 }
 
 /**
- *  @brief      Stop all motors: all inputs set to 0
+ *  @brief      Stop all motors: torque off
  *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @retval     1 if motors successfully stopped, 0 otherwise
  */ 
@@ -291,7 +291,7 @@ bool MotorHandler::stopMotors()
 }
 
 /**
- *  @brief      Stop a motor: all inputs set to 0
+ *  @brief      Stop a motor: torque off
  *  @note       Corresponds to the "parking mode" in CubeMars's videos
  *  @retval     1 if motor successfully stopped, 0 otherwise
  */ 
@@ -648,7 +648,14 @@ bool MotorHandler::maintainPosition(vector<int> ids, bool moving)
         return 0;
     }
 
-    success = setPositions(ids, fbckPositions);
+    // We want to maintain position, but we have no guarantee Kp and Kd are set.
+    // Therefore, using some default Kp and Kd values
+    vector<float> Kps(ids.size(), 150);
+    vector<float> Kds(ids.size(), 2);
+    vector<float> speeds(ids.size(), 0);
+    vector<float> torques(ids.size(), 0);
+
+    success = setCommand(ids, fbckPositions, speeds, Kps, Kds, torques);
     return success;
 }
 

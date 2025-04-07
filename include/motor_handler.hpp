@@ -36,12 +36,7 @@ public:
     void setKps(std::vector<int> ids, std::vector<float> Kps);
     void setKds(std::vector<int> ids, std::vector<float> Kds);
 
-    // ------ Enabling/disabling + 0 setting ------ //
-
-    bool enableMotors();
-    bool enableMotors(std::vector<int> ids);
-    bool disableMotors();
-    bool disableMotors(std::vector<int> ids);
+    // ------ Torque disabling + 0 setting ------ //
 
     bool stopMotors(std::vector<int> ids);
     bool stopMotors();
@@ -99,6 +94,13 @@ private:
 
     int openSocket(const char* can_bus);
     void pingMotors();
+
+    // ------ Enabling/disabling = setting/exiting MIT mode ------ //
+
+    bool enableMotors();
+    bool enableMotors(std::vector<int> ids);
+    bool disableMotors();
+    bool disableMotors(std::vector<int> ids);
 };
 
 }

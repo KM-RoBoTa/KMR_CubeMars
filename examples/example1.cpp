@@ -20,8 +20,6 @@ int main()
     sleep(1);
 
     sleep(3);
-    cout << "Going to MIT mode" << endl;
-    motorHandler.enableMotors();
 
     cout << "Sending the command" << endl;
     float goalPosition = M_PI/2;

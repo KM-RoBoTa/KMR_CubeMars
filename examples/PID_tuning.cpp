@@ -80,8 +80,6 @@ int main()
     vector<float> goalPositions(nbrMotors, 0);
     vector<float> fbckPositions(nbrMotors), fbckSpeeds(nbrMotors), fbckTorques(nbrMotors);
     vector<int> fbckTemperatures(nbrMotors);
-    cout << "Going to MIT mode" << endl;
-    motorHandler.enableMotors();
     sleep(1);
 
     // Set the 0 reference
