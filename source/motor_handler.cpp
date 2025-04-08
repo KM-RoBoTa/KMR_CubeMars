@@ -54,11 +54,11 @@ MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> m
     }
 
     // Open a socket to be able to communicate over a CAN network
-    int s = openSocket(can_bus);
+    m_socket = openSocket(can_bus);
 
     // Create the writer and the listener 
-    m_writer = new Writer(m_motors, ids, s);
-    m_listener = new Listener(m_motors, ids, s);
+    m_writer = new Writer(m_motors, ids, m_socket);
+    m_listener = new Listener(m_motors, ids, m_socket);
 
     usleep(2*1000000);
 
@@ -82,7 +82,8 @@ MotorHandler::~MotorHandler()
     for (int i=0; i<m_nbrMotors; i++)
         delete m_motors[i];
 
-    // close socket
+    // Close socket
+    close(m_socket);
 }
 
 /**

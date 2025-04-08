@@ -85,6 +85,8 @@ public:
     bool getTemperatures(std::vector<int>& fbckTemperatures, bool moving = 1);
 
 private:
+    int m_socket = -1;
+
     Listener* m_listener = nullptr;
     Writer* m_writer = nullptr;
 

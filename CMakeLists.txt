@@ -25,8 +25,8 @@ if(BUILD_DOCS)
 endif()
 
 # Generate example executables
-add_executable(example1 examples/example1.cpp)
-target_link_libraries(example1 ${PROJECT_NAME})
+add_executable(ex1_impedance examples/ex1_impedance.cpp)
+target_link_libraries(ex1_impedance ${PROJECT_NAME})
 add_executable(ex2_position examples/ex2_position.cpp)
 target_link_libraries(ex2_position ${PROJECT_NAME})
 add_executable(ex3_speed examples/ex3_speed.cpp)
