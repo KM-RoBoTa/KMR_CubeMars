@@ -2,7 +2,7 @@
  ********************************************************************************************
  * @file    ex4_torque.cpp
  * @brief   Example for torque control
- * @details 
+ * @details This is a very simple example to showcase torque control. \n
  ********************************************************************************************
  * @copyright
  * Copyright 2021-2024 Kamilo Melo \n
@@ -22,31 +22,36 @@
 
 using namespace std;
 
+// --------------------------------------------------------------------------- //
+//                                EDIT HERE 
+// --------------------------------------------------------------------------- //
+
+// Id(s) and model(s) of motor(s)
+vector<int> ids = {1}; 
+int nbrMotors = ids.size();
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+
+const char* can_bus = "can0";
+// --------------------------------------------------------------------------- //
+
+
 int main()
 {
-    vector<int> ids(1,1);
-    int nbrMotors = ids.size();
-    vector<KMR::CBM::Model> models(nbrMotors, KMR::CBM::Model::AK60_6);
-
-    const char* can_bus = "can0";
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
     
-    // Enable motor
+    // Create variables
     vector<float> goalPositions(nbrMotors, 0);
     vector<float> fbckPositions(nbrMotors), fbckSpeeds(nbrMotors), fbckTorques(nbrMotors);
     vector<int> fbckTemperatures(nbrMotors);
-    cout << "Going to MIT mode" << endl;
-    motorHandler.enableMotors();
     sleep(1);
 
     // Set the 0 reference
-    /*cout << "Setting 0" << endl;
+    cout << "Setting 0" << endl;
     motorHandler.setZeroPosition();
-    sleep(1);*/
+    sleep(1);
 
-    // Main loop
-    cout << "Sending the command" << endl;
 
+    // ------------------ Main loop --------------------- //
     cout << endl << endl << " ---------- Torque control ---------" << endl;
     sleep(3);
 
@@ -54,12 +59,13 @@ int main()
     vector<float> goalTorques(nbrMotors, 0);
 
     float torque = GOAL_TORQUE1; // Nm
-    int ctr = 0;
+    int ctr = 0, overtimeCtr = 0;
 
+    // Start main loop
     while (ctr < MAX_CTR) {
-        // Get feedback
         timespec start = KMR::CBM::time_s();
 
+        // Get feedback
         if (ctr == 0)
             motorHandler.getTorques(fbckTorques, 0);
         else    
@@ -88,10 +94,16 @@ int main()
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;
-            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+            overtimeCtr++;
+            //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
         usleep(toSleep_us);
     }
+
+    cout << endl << endl << "The torque control example successfully finished." << endl;
+    cout << endl;
+    cout << "Loops longer than the control period due to scheduling delays: " << overtimeCtr <<
+            "/" << ctr << " (" << (float)overtimeCtr/(float)ctr*100.0 << "%)" << endl; 
 
     motorHandler.getTemperatures(fbckTemperatures, 0);
     cout << endl;

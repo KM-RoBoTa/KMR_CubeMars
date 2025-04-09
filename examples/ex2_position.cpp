@@ -2,7 +2,8 @@
  ********************************************************************************************
  * @file    ex2_position.cpp
  * @brief   Example for position control
- * @details 
+ * @details This is a very simple example to showcase position control. \n
+ *          The motor's goal position oscillates between -pi and pi radians.
  ********************************************************************************************
  * @copyright
  * Copyright 2021-2024 Kamilo Melo \n
@@ -21,13 +22,21 @@
 
 using namespace std;
 
+// --------------------------------------------------------------------------- //
+//                                EDIT HERE 
+// --------------------------------------------------------------------------- //
+
+// Id(s) and model(s) of motor(s)
+vector<int> ids = {1}; 
+int nbrMotors = ids.size();
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK80_8};
+
+const char* can_bus = "can0";
+// --------------------------------------------------------------------------- //
+
+
 int main()
 {
-    vector<int> ids(1,1);
-    int nbrMotors = ids.size();
-    vector<KMR::CBM::Model> models(nbrMotors, KMR::CBM::Model::AK60_6);
-
-    const char* can_bus = "can0";
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
     // Set Kp and Kd
@@ -36,12 +45,10 @@ int main()
     motorHandler.setKps(ids, Kps);
     motorHandler.setKds(ids, Kds);
     
-    // Enable motor
+    // Create variables
     vector<float> goalPositions(nbrMotors, 0);
     vector<float> fbckPositions(nbrMotors), fbckSpeeds(nbrMotors), fbckTorques(nbrMotors);
     vector<int> fbckTemperatures(nbrMotors);
-    cout << "Going to MIT mode" << endl;
-    motorHandler.enableMotors();
     sleep(1);
 
     // Set the 0 reference
@@ -49,18 +56,18 @@ int main()
     motorHandler.setZeroPosition();
     sleep(1);
 
-    // Main loop
+    // ------------------ Main loop --------------------- //
     cout << endl << endl << " ---------- Position control ---------" << endl;
     sleep(3);
     float angle = 0;
     bool forward = 1;
-    int ctr = 0;
+    int ctr = 0, overtimeCtr = 0;
 
-    // Main loop
+    // Start main loop
     while (ctr < MAX_CTR) {
-        // Get feedback
         timespec start = KMR::CBM::time_s();
 
+        // Get feedback
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
         else    
@@ -77,13 +84,7 @@ int main()
         // Send new goal positions
         for (int i=0; i<nbrMotors; i++)
             goalPositions[i] = angle;
-        timespec startCommand = KMR::CBM::time_s();
         motorHandler.setPositions(goalPositions);
-        timespec endCommand = KMR::CBM::time_s();
-        double elapsedCommand = KMR::CBM::get_delta_us(endCommand, startCommand);
-
-        if (elapsedCommand > 1000)
-            cout << "Elapsed write = " << elapsedCommand << " us" << endl;
 
         // Update the goal angle for next loop
         if (forward) {
@@ -111,11 +112,17 @@ int main()
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;
+            overtimeCtr++;
             //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
 
         usleep(toSleep_us);
     }
+
+    cout << endl << endl << "The position control example successfully finished." << endl;
+    cout << endl;
+    cout << "Loops longer than the control period due to scheduling delays: " << overtimeCtr <<
+            "/" << ctr << " (" << (float)overtimeCtr/(float)ctr*100.0 << "%)" << endl; 
 
     motorHandler.getTemperatures(fbckTemperatures, 0);
     cout << endl;
