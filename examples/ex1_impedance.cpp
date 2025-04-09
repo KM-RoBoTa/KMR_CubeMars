@@ -124,10 +124,12 @@ int main()
         timespec end = KMR::CBM::time_s();
         double elapsed = KMR::CBM::get_delta_us(end, start);
         double toSleep_us = CTRL_PERIOD_US-elapsed;
-        if (toSleep_us < 0)
+        if (toSleep_us < 0) {
             toSleep_us = 0;
             overtimeCtr++;
             //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+        }
+
         usleep(toSleep_us);
     }
 
