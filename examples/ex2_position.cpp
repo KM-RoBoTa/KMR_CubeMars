@@ -29,7 +29,7 @@ using namespace std;
 // Id(s) and model(s) of motor(s)
 vector<int> ids = {1}; 
 int nbrMotors = ids.size();
-vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK80_8};
 
 const char* can_bus = "can0";
 // --------------------------------------------------------------------------- //
