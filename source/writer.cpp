@@ -153,7 +153,7 @@ int Writer::writeZeroPosition(int id)
  *  @param[in]  speed Goal speed [rad/s]
  *  @param[in]  Kp Factor for position difference
  *  @param[in]  Kd Factor for speeds difference
- *  @param[in]  torque Goal torue [Nm]
+ *  @param[in]  torque Goal torque [Nm]
  * 	@return 	Number of bytes sent to the CAN bus. Equal to -1 if sending failed
  */ 
 int Writer::writeMITCommand(int id, float position, float speed, float Kp, float Kd, float torque)
