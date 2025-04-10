@@ -29,6 +29,17 @@ using namespace std;
 namespace KMR::CBM
 {
 
+struct Wrap {
+    Listener* ins; 	// ptr to instance of Listener
+    int s;   		// socket
+
+    Wrap(Listener* ins, int s) {
+		this->s = s;
+		this->ins = ins;
+	}
+};
+
+
 /**
  * @brief       Start the CAN bus listener
  * @details		The listener works in its own thread, created on constructor call. 
@@ -42,8 +53,33 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
 	m_motors = motors;
 	m_nbrMotors = motors.size();
     m_stopThread = false;
-    m_thread = thread(&Listener::listenerLoop, this, s);
+
+	// Wrap the arguments
+	Wrap* wrap = new Wrap(this, s);
+
+	// Create RT thread
+	pthread_attr_t tattr;
+	sched_param param;
+
+	/* initialized with default attributes */
+	int ret = pthread_attr_init (&tattr);
+
+	/* safe to get existing scheduling param */
+	ret = pthread_attr_getschedparam (&tattr, &param);
+
+	/* set the priority; others are unchanged */
+	int newprio = 80;
+	param.sched_priority = newprio;
+
+	/* setting the new scheduling param */
+	ret = pthread_attr_setschedparam (&tattr, &param);
+
+	/* with new priority specified */
+	ret = pthread_create (&m_thread, &tattr, &Listener::listenerLoop_helper, wrap); 
+
 	m_ids = ids;
+
+	delete wrap;
 
     cout << "Creating the CAN listener's thread..." << endl;
 	usleep(50000);  
@@ -56,13 +92,13 @@ Listener::~Listener()
 {
 	// Change the internal boolean to get the thread out of its loop function
 	{
-		scoped_lock lock(m_mutex);
+		pthread_mutex_lock( &m_mutex );
 		m_stopThread = true;	
+		pthread_mutex_unlock( &m_mutex );
 	}	
     
 	// Block the main thread until the Listener thread finishes
-    if (m_thread.joinable()) 
-        m_thread.join();
+	pthread_join(m_thread, NULL);
 
 	cout << "Listener thread safely stopped" << endl;
 }
@@ -72,7 +108,7 @@ Listener::~Listener()
  * @param[in]   s Socket
  * @retval      1 when the thread is finished
  */
-int Listener::listenerLoop(int s)
+void Listener::listenerLoop(int s)
 {
 	bool stopThread = 0;
 
@@ -86,15 +122,27 @@ int Listener::listenerLoop(int s)
 			parseFrame(frame);
 
 		// Thread sleep for scheduling
-		std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
+		//std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
 		{
-			scoped_lock lock(m_mutex);
+			pthread_mutex_lock( &m_mutex );
 			stopThread = m_stopThread;	
+			pthread_mutex_unlock(&m_mutex );
 		}
     }
-
-    return 0;
 }
+
+
+void* Listener::listenerLoop_helper(void* wrap)
+{
+	// Convert wrap from void* to Wrap* = cast args into a meaningful pointer type that we can use
+	Wrap* w = static_cast<Wrap*>(wrap); 
+
+	// Call the real method we want to run
+	w->ins->listenerLoop(w->s);
+
+	return NULL;
+}
+
 
 /**
  * 	@brief 		Convert a parameter received from motors to SI units
@@ -149,13 +197,14 @@ void Listener::parseFrame(can_frame frame)
 	torque = -torque;
 
 	// Save to internal structure
-	scoped_lock lock(m_mutex);
+	pthread_mutex_lock( &m_mutex );
 	m_motors[idx]->fbckPosition = position;
 	m_motors[idx]->fbckSpeed = speed;
 	m_motors[idx]->fbckTorque = torque;
 	m_motors[idx]->fbckTemperature = temperature;
 
 	m_motors[idx]->fr_fbckReady = 1;
+	pthread_mutex_unlock( &m_mutex );
 }
 
 
@@ -179,11 +228,12 @@ bool Listener::fbckReceived(int id)
 			break;
 		}		
 
-		scoped_lock lock(m_mutex);
+		pthread_mutex_lock( &m_mutex );
 		available = m_motors[idx]->fr_fbckReady;
 
 		// Clear update flag
 		m_motors[idx]->fr_fbckReady = 0;
+		pthread_mutex_unlock( &m_mutex );
 	}
 
 	return available;		
@@ -215,7 +265,7 @@ bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 			break;
 		}		
 
-		scoped_lock lock(m_mutex);
+		pthread_mutex_lock( &m_mutex );
 		available = m_motors[idx]->fr_fbckReady;
 		fbckPosition = m_motors[idx]->fbckPosition;
 		fbckSpeed = m_motors[idx]->fbckSpeed;
@@ -224,6 +274,8 @@ bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 
 		// Clear update flag
 		m_motors[idx]->fr_fbckReady = 0;
+
+		pthread_mutex_unlock( &m_mutex );
 	}
 
 	return available;	

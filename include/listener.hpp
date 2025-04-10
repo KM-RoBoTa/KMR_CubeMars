@@ -14,10 +14,14 @@
 #define KMR_CUBEMARS_LISTENER_HPP
 
 #include <iostream>
-#include <mutex>
-#include <thread>
+//#include <mutex>
+//#include <thread>
 #include <vector>
 #include <linux/can.h>
+
+// RT 
+#include <pthread.h>
+#include <sched.h>
 
 #include "../config/structures.hpp"
 #include "utils.hpp"
@@ -40,14 +44,16 @@ public:
 private:
     // Thread
     bool m_stopThread = 0;
-    std::thread m_thread;
-    std::mutex m_mutex;
+    pthread_t m_thread;
+    pthread_mutex_t m_mutex;
 
     std::vector<Motor*> m_motors;
     int m_nbrMotors;
     std::vector<int> m_ids;
 
-    int listenerLoop(int s);
+    void listenerLoop(int s);
+    static void* listenerLoop_helper(void* wrap);
+
     void parseFrame(can_frame frame);
     float convertParameter_to_SI(int x, float xMin, float xMax, int bitSize);
 };
