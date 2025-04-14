@@ -22,6 +22,8 @@
 #include <net/if.h> // network devices
 #include <sstream> // Convert dec-hex
 
+#include <sys/mman.h>
+
 #include "listener.hpp"
 
 using namespace std;
@@ -31,10 +33,10 @@ namespace KMR::CBM
 
 struct Wrap {
     Listener* ins; 	// ptr to instance of Listener
-    int s;   		// socket
+    int* socket;   		// socket
 
-    Wrap(Listener* ins, int s) {
-		this->s = s;
+    Wrap(Listener* ins, int* socket) {
+		this->socket = socket;
 		this->ins = ins;
 	}
 };
@@ -55,7 +57,13 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
     m_stopThread = false;
 
 	// Wrap the arguments
-	Wrap* wrap = new Wrap(this, s);
+	Wrap* wrap = new Wrap(this, &s);
+
+	/* Lock memory */
+	if(mlockall(MCL_CURRENT|MCL_FUTURE) == -1) {
+			printf("mlockall failed: %m\n");
+			exit(-2);
+	}
 
 	// Create RT thread
 	pthread_attr_t tattr;
@@ -63,26 +71,70 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
 
 	/* initialized with default attributes */
 	int ret = pthread_attr_init (&tattr);
+	if (ret) {
+		cout << "init pthread attributes failed" << endl;
+		exit(1);
+	}
+
+	/* Set a specific stack size  */
+	ret = pthread_attr_setstacksize(&tattr, PTHREAD_STACK_MIN);
+	if (ret) {
+		cout << "pthread setstacksize failed" << endl;
+		exit(1);
+	}
+
+	/* Set scheduler policy and priority of pthread */
+	ret = pthread_attr_setschedpolicy(&tattr, SCHED_RR);
+	if (ret) {
+		cout << "pthread setschedpolicy failed" << endl;
+		exit(1);
+	}
 
 	/* safe to get existing scheduling param */
-	ret = pthread_attr_getschedparam (&tattr, &param);
+	//ret = pthread_attr_getschedparam (&tattr, &param);
+	//cout << "Default prio: " << param.sched_priority << endl;
 
 	/* set the priority; others are unchanged */
-	int newprio = 80;
+	int newprio = 95;
 	param.sched_priority = newprio;
 
 	/* setting the new scheduling param */
-	ret = pthread_attr_setschedparam (&tattr, &param);
+	ret = pthread_attr_setschedparam(&tattr, &param);
+	if (ret) {
+		cout << "pthread setschedparam failed" << endl;
+		exit(1);
+	}
+
+	/* Use scheduling parameters of attr */
+	// LOL: https://stackoverflow.com/questions/3206814/pthreads-with-real-time-priority
+	ret = pthread_attr_setinheritsched(&tattr, PTHREAD_EXPLICIT_SCHED);
+	if (ret) {
+		cout << "pthread setinheritsched failed" << endl;
+		exit(1);
+	}
 
 	/* with new priority specified */
+	//ret = pthread_create (&m_thread, NULL, &Listener::listenerLoop_helper, wrap); 
 	ret = pthread_create (&m_thread, &tattr, &Listener::listenerLoop_helper, wrap); 
+	if (ret) {
+		cout << "ret = " << ret << endl;
+		if (ret == EPERM)
+			cout << "Need root perm to create pthread" << endl;
+		else if (ret == EAGAIN)
+			cout << "Insufficient resources to create another thread" << endl;
+		else if (ret == EINVAL)
+			cout << "Invalid settings in attr" << endl;
+		else 
+			cout << "pthread create failed" << endl;
+		exit(1);
+	}
 
 	m_ids = ids;
 
-	delete wrap;
-
     cout << "Creating the CAN listener's thread..." << endl;
-	usleep(50000);  
+
+	sleep(2);  // Make sure the Listener thread started before deleting wrap
+	delete wrap;
 }
 
 /**
@@ -121,13 +173,19 @@ void Listener::listenerLoop(int s)
         if (nbytes > 0)
 			parseFrame(frame);
 
+		//usleep(10000);
+
 		// Thread sleep for scheduling
 		//std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
-		{
-			pthread_mutex_lock( &m_mutex );
-			stopThread = m_stopThread;	
-			pthread_mutex_unlock(&m_mutex );
-		}
+		//{
+		//	pthread_mutex_lock( &m_mutex );
+		//	stopThread = m_stopThread;	
+		//	pthread_mutex_unlock(&m_mutex );
+		//}
+
+		pthread_mutex_lock( &m_mutex );
+		stopThread = m_stopThread;	
+		pthread_mutex_unlock(&m_mutex );
     }
 }
 
@@ -138,7 +196,8 @@ void* Listener::listenerLoop_helper(void* wrap)
 	Wrap* w = static_cast<Wrap*>(wrap); 
 
 	// Call the real method we want to run
-	w->ins->listenerLoop(w->s);
+	int s = *(w->socket);
+	w->ins->listenerLoop(s);
 
 	return NULL;
 }

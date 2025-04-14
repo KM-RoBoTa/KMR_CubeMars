@@ -45,7 +45,7 @@ private:
     // Thread
     bool m_stopThread = 0;
     pthread_t m_thread;
-    pthread_mutex_t m_mutex;
+    pthread_mutex_t m_mutex = PTHREAD_MUTEX_INITIALIZER;
 
     std::vector<Motor*> m_motors;
     int m_nbrMotors;
