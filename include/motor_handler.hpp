@@ -24,7 +24,13 @@ namespace KMR::CBM
 {
 
 /**
- * @brief   Highest-level class that manages all communication with the motors
+ * @brief   Highest-level class that manages all communication with the motors. Serves as
+ *          the user interface with the library
+ * @details The MotorHandler uses a Writer object to create and send the packets to the CAN bus. \n
+ *          A Listener object listens to the CAN bus, and fetches and saves any information it reads. \n
+ *          For all commands, after sending the command through the Writer, MotorHandler gets the 
+ *          confirmation of the command being successful or not, as well as feedback values, from
+ *          the Listener object.
  */
 class MotorHandler {
 public:
@@ -75,12 +81,16 @@ public:
                       std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
     bool getFeedbacks(std::vector<float>& fbckPositions, std::vector<float>& fbckSpeeds,
                       std::vector<float>& fbckTorques, std::vector<int>& fbckTemperatures, bool moving = 1);
+    
     bool getPositions(std::vector<int> ids, std::vector<float>& fbckPositions, bool moving = 1);
     bool getPositions(std::vector<float>& fbckPositions, bool moving = 1);
+    
     bool getSpeeds(std::vector<int> ids, std::vector<float>& fbckSpeeds, bool moving = 1);
     bool getSpeeds(std::vector<float>& fbckSpeeds, bool moving = 1);
+    
     bool getTorques(std::vector<int> ids, std::vector<float>& fbckTorques, bool moving = 1);
     bool getTorques(std::vector<float>& fbckTorques, bool moving = 1);
+    
     bool getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures, bool moving = 1);
     bool getTemperatures(std::vector<int>& fbckTemperatures, bool moving = 1);
 

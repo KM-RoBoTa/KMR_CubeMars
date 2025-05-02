@@ -38,7 +38,7 @@ namespace KMR::CBM
  *  @param[in]  can_bus CAN bus name used for the communication with the motors
  *  @param[in]  models CubeMars models of all motors
  */ 
-MotorHandler::MotorHandler(vector<int> ids, const char* can_bus, vector<Model> models)
+MotorHandler::MotorHandler(std::vector<int> ids, const char* can_bus, std::vector<Model> models)
 {
     if (models.size() != ids.size()) {
         cout << "Error! The size of the models' vector is not equal to the size of motor ids" << endl;
@@ -161,7 +161,7 @@ void MotorHandler::pingMotors()
  *  @param[in]  ids Motor IDs for which we want to save Kp
  *  @param[in]  Kps List of Kps saved for the list of motors
  */ 
-void MotorHandler::setKps(vector<int> ids, vector<float> Kps)
+void MotorHandler::setKps(std::vector<int> ids, std::vector<float> Kps)
 {
     for (int i=0; i<ids.size(); i++) {
         int idx = getIndex(m_ids, ids[i]);
@@ -174,7 +174,7 @@ void MotorHandler::setKps(vector<int> ids, vector<float> Kps)
  *  @param[in]  ids Motor IDs for which we want to save Kd
  *  @param[in]  Kds List of Kds saved for the list of motors
  */ 
-void MotorHandler::setKds(vector<int> ids, vector<float> Kds)
+void MotorHandler::setKds(std::vector<int> ids, std::vector<float> Kds)
 {
     for (int i=0; i<ids.size(); i++) {
         int idx = getIndex(m_ids, ids[i]);
@@ -193,7 +193,7 @@ void MotorHandler::setKds(vector<int> ids, vector<float> Kds)
  *  @param[in]  ids Motor IDs to be enabled
  *  @retval     1 if motors successfully enabled, 0 otherwise
  */ 
-bool MotorHandler::enableMotors(vector<int> ids)
+bool MotorHandler::enableMotors(std::vector<int> ids)
 {
     for(auto id : ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
@@ -227,7 +227,7 @@ bool MotorHandler::enableMotors()
  *  @param[in]  ids Motor IDs to be disabled
  *  @retval     1 if motors successfully disabled, 0 otherwise
  */ 
-bool MotorHandler::disableMotors(vector<int> ids)
+bool MotorHandler::disableMotors(std::vector<int> ids)
 {
     // Stop the motors first ("parking" mode)
     bool success = stopMotors(ids);
@@ -268,7 +268,7 @@ bool MotorHandler::disableMotors()
  *  @param[in]  ids IDs of the motors to stop
  *  @retval     1 if motors successfully stopped, 0 otherwise
  */ 
-bool MotorHandler::stopMotors(vector<int> ids)
+bool MotorHandler::stopMotors(std::vector<int> ids)
 {
     int nbrMotors = ids.size();
     vector<float> positions(nbrMotors, 0);
@@ -294,6 +294,7 @@ bool MotorHandler::stopMotors()
 /**
  *  @brief      Stop a motor: torque off
  *  @note       Corresponds to the "parking mode" in CubeMars's videos
+ *  @param[in]  id ID of the motor to stop
  *  @retval     1 if motor successfully stopped, 0 otherwise
  */ 
 bool MotorHandler::stopMotor(int id)
@@ -304,12 +305,10 @@ bool MotorHandler::stopMotor(int id)
 
 /**
  *  @brief      Set the zero position of input motors at their current position
- *  @details    After setting the zero, it appeared necessary to send the maintainPosition command,
- *              otherwise the motors would often execute the previous control command a second time
  *  @param[in]  ids Motor IDs setting their zero reference
  *  @retval     1 if motors successfully set their zero, 0 otherwise
  */ 
-bool MotorHandler::setZeroPosition(vector<int> ids)
+bool MotorHandler::setZeroPosition(std::vector<int> ids)
 {
     // Stop the motors before setting their 0-position ("parking mode")
     bool motorsStopped = stopMotors(ids);
@@ -342,9 +341,8 @@ bool MotorHandler::setZeroPosition(vector<int> ids)
 
 /**
  *  @brief      Set the zero position of all motors at their current position
- *  @details    After setting the zero, it appeared necessary to send the maintainPosition command,
- *              otherwise the motors would often execute the previous control command a second time
  *  @retval     1 if motors successfully set their zero, 0 otherwise
+ * 
  */ 
 bool MotorHandler::setZeroPosition()
 {
@@ -353,8 +351,6 @@ bool MotorHandler::setZeroPosition()
 
 /**
  *  @brief      Set the zero position of the input motor at its current position
- *  @details    After setting the zero, it appeared necessary to send the maintainPosition command,
- *              otherwise the motors would often execute the previous control command a second time
  *  @param[in]  id Motor ID setting its zero reference
  *  @retval     1 if the motor successfully set its zero, 0 otherwise
  */ 
@@ -370,17 +366,18 @@ bool MotorHandler::setZeroPosition(int id)
  ****************************************************************************/
 
 /**
- * @brief       Send MIT control commands to the listed motors
- * @param[in]   ids IDs of the motors receiving the commands
- * @param[in]   positions Goal positions [rad]
- * @param[in]   speeds Goal speeds [rad/s]
- * @param[in]   Kps Kp factors
- * @param[in]   Kds Kd factors
- * @param[in]   torques Feedforward torques [Nm]
- * @return      1 if sending the commands was successful, 0 otherwise
+ *  @brief       Send MIT control commands to the listed motors
+ *  @param[in]   ids IDs of the motors receiving the commands
+ *  @param[in]   positions Goal positions [rad]
+ *  @param[in]   speeds Goal speeds [rad/s]
+ *  @param[in]   Kps Kp factors
+ *  @param[in]   Kds Kd factors
+ *  @param[in]   torques Feedforward torques [Nm]
+ *  @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setCommand(vector<int> ids, vector<float> positions, vector<float> speeds,
-                                   vector<float> Kps, vector<float> Kds, vector<float> torques)
+bool MotorHandler::setCommand(std::vector<int> ids, std::vector<float> positions,
+                              std::vector<float> speeds, std::vector<float> Kps,
+                              std::vector<float> Kds, std::vector<float> torques)
 {
     for (int i=0; i<ids.size(); i++) {
         if(m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]) < 0)
@@ -402,16 +399,17 @@ bool MotorHandler::setCommand(vector<int> ids, vector<float> positions, vector<f
 
 
 /**
- * @brief       Send MIT control commands to all motors
- * @param[in]   positions Goal positions [rad]
- * @param[in]   speeds Goal speeds [rad/s]
- * @param[in]   Kps Kp factors
- * @param[in]   Kds Kd factors
- * @param[in]   torques Feedforward torques [Nm]
- * @return      1 if sending the commands was successful, 0 otherwise
+ *  @brief       Send MIT control commands to all motors
+ *  @param[in]   positions Goal positions [rad]
+ *  @param[in]   speeds Goal speeds [rad/s]
+ *  @param[in]   Kps Kp factors
+ *  @param[in]   Kds Kd factors
+ *  @param[in]   torques Feedforward torques [Nm]
+ *  @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setCommand(vector<float> positions, vector<float> speeds,
-                                   vector<float> Kps, vector<float> Kds, vector<float> torques)
+bool MotorHandler::setCommand(std::vector<float> positions, std::vector<float> speeds,
+                              std::vector<float> Kps, std::vector<float> Kds,
+                              std::vector<float> torques)
 {
     return(setCommand(m_ids, positions, speeds, Kps, Kds, torques));
 }
@@ -423,7 +421,7 @@ bool MotorHandler::setCommand(vector<float> positions, vector<float> speeds,
  * @param[in]   positions Goal positions [rad]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setPositions(vector<int> ids, vector<float> positions)
+bool MotorHandler::setPositions(std::vector<int> ids, std::vector<float> positions)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size(), 0);
@@ -462,7 +460,7 @@ bool MotorHandler::setPositions(vector<int> ids, vector<float> positions)
  * @param[in]   positions Goal positions [rad]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setPositions(vector<float> positions)
+bool MotorHandler::setPositions(std::vector<float> positions)
 {
     return (setPositions(m_ids, positions));
 }
@@ -474,7 +472,8 @@ bool MotorHandler::setPositions(vector<float> positions)
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector<float> torques)
+bool MotorHandler::setPositions(std::vector<int> ids, std::vector<float> positions,
+                                std::vector<float> torques)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size(), 0);
@@ -513,7 +512,7 @@ bool MotorHandler::setPositions(vector<int> ids, vector<float> positions, vector
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setPositions(vector<float> positions, vector<float> torques)
+bool MotorHandler::setPositions(std::vector<float> positions, std::vector<float> torques)
 {
    return (setPositions(m_ids, positions, torques));
 }
@@ -525,7 +524,7 @@ bool MotorHandler::setPositions(vector<float> positions, vector<float> torques)
  * @param[in]   speeds Goal speeds [rad/s]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds)
+bool MotorHandler::setSpeeds(std::vector<int> ids, std::vector<float> speeds)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size(), 0);
@@ -557,7 +556,7 @@ bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds)
  * @param[in]   speeds Goal speeds [rad/s]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setSpeeds(vector<float> speeds)
+bool MotorHandler::setSpeeds(std::vector<float> speeds)
 {
     return (setSpeeds(m_ids, speeds));
 }
@@ -569,7 +568,8 @@ bool MotorHandler::setSpeeds(vector<float> speeds)
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds, vector<float> torques)
+bool MotorHandler::setSpeeds(std::vector<int> ids, std::vector<float> speeds,
+                             std::vector<float> torques)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size());
@@ -600,7 +600,7 @@ bool MotorHandler::setSpeeds(vector<int> ids, vector<float> speeds, vector<float
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setSpeeds(vector<float> speeds, vector<float> torques)
+bool MotorHandler::setSpeeds(std::vector<float> speeds, std::vector<float> torques)
 {
    return (setSpeeds(m_ids, speeds, torques));
 }
@@ -611,7 +611,7 @@ bool MotorHandler::setSpeeds(vector<float> speeds, vector<float> torques)
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setTorques(vector<int> ids, vector<float> torques)
+bool MotorHandler::setTorques(std::vector<int> ids, std::vector<float> torques)
 {
     vector<float> Kps(ids.size(), 0);
     vector<float> Kds(ids.size(), 0);
@@ -628,7 +628,7 @@ bool MotorHandler::setTorques(vector<int> ids, vector<float> torques)
  * @param[in]   torques Feedforward torques [Nm]
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::setTorques(vector<float> torques)
+bool MotorHandler::setTorques(std::vector<float> torques)
 {
     return (setTorques(m_ids, torques));
 }
@@ -640,7 +640,7 @@ bool MotorHandler::setTorques(vector<float> torques)
  * @param[in]   moving 1 if motors are in motion, 0 if motors static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::maintainPosition(vector<int> ids, bool moving)
+bool MotorHandler::maintainPosition(std::vector<int> ids, bool moving)
 {
     vector<float> fbckPositions(ids.size(), 0);
     bool success = getPositions(ids, fbckPositions, moving);
@@ -677,17 +677,18 @@ bool MotorHandler::maintainPosition(bool moving)
  ****************************************************************************/
 
 /**
- * @brief       Get feedback from the input motors
- * @param[in]   ids IDs of the motors receiving the commands
- * @param[out]  fbckPositions Feedback positions [rad]
- * @param[out]  fbckSpeeds Feedback speeds [rad/s]
- * @param[out]  fbckTorques Feedback torques [Nm]
- * @param[out]  fbckTemperatures Feedback temperatures [°C]
- * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
- * @return      1 if sending the commands was successful, 0 otherwise
+ *  @brief       Get feedback from the input motors
+ *  @param[in]   ids IDs of the motors receiving the commands
+ *  @param[out]  fbckPositions Feedback positions [rad]
+ *  @param[out]  fbckSpeeds Feedback speeds [rad/s]
+ *  @param[out]  fbckTorques Feedback torques [Nm]
+ *  @param[out]  fbckTemperatures Feedback temperatures [°C]
+ *  @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
+ *  @retval      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getFeedbacks(vector<int> ids, vector<float>& fbckPositions, vector<float>& fbckSpeeds,
-                                vector<float>& fbckTorques, vector<int>& fbckTemperatures, bool moving)
+bool MotorHandler::getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPositions,
+                                std::vector<float>& fbckSpeeds, std::vector<float>& fbckTorques,
+                                std::vector<int>& fbckTemperatures, bool moving)
 {
     for(auto id : ids) {
         if (!moving) {
@@ -716,16 +717,17 @@ bool MotorHandler::getFeedbacks(vector<int> ids, vector<float>& fbckPositions, v
 }
 
 /**
- * @brief       Get feedback from all motors
- * @param[out]  fbckPositions Feedback positions [rad]
- * @param[out]  fbckSpeeds Feedback speeds [rad/s]
- * @param[out]  fbckTorques Feedback torques [Nm]
- * @param[out]  fbckTemperatures Feedback temperatures [°C]
- * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
- * @return      1 if sending the commands was successful, 0 otherwise
+ *  @brief       Get feedback from all motors
+ *  @param[out]  fbckPositions Feedback positions [rad]
+ *  @param[out]  fbckSpeeds Feedback speeds [rad/s]
+ *  @param[out]  fbckTorques Feedback torques [Nm]
+ *  @param[out]  fbckTemperatures Feedback temperatures [°C]
+ *  @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
+ *  @retval      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getFeedbacks(vector<float>& fbckPositions, vector<float>& fbckSpeeds,
-                                vector<float>& fbckTorques, vector<int>& fbckTemperatures, bool moving)
+bool MotorHandler::getFeedbacks(std::vector<float>& fbckPositions,
+                                std::vector<float>& fbckSpeeds, std::vector<float>& fbckTorques,
+                                std::vector<int>& fbckTemperatures, bool moving)
 {
     return(getFeedbacks(m_ids, fbckPositions, fbckSpeeds, fbckTorques, fbckTemperatures, moving));
 }
@@ -738,7 +740,7 @@ bool MotorHandler::getFeedbacks(vector<float>& fbckPositions, vector<float>& fbc
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getPositions(vector<int> ids, vector<float>& fbckPositions, bool moving)
+bool MotorHandler::getPositions(std::vector<int> ids, std::vector<float>& fbckPositions, bool moving)
 {
     for(auto id : ids) {
         if (!moving) {
@@ -778,7 +780,7 @@ bool MotorHandler::getPositions(vector<int> ids, vector<float>& fbckPositions, b
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getPositions(vector<float>& fbckPositions, bool moving)
+bool MotorHandler::getPositions(std::vector<float>& fbckPositions, bool moving)
 {
     return(getPositions(m_ids, fbckPositions, moving));
 }
@@ -790,7 +792,7 @@ bool MotorHandler::getPositions(vector<float>& fbckPositions, bool moving)
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getSpeeds(vector<int> ids, vector<float>& fbckSpeeds, bool moving)
+bool MotorHandler::getSpeeds(std::vector<int> ids, std::vector<float>& fbckSpeeds, bool moving)
 {
     for(auto id : ids) {
         if (!moving) {
@@ -829,7 +831,7 @@ bool MotorHandler::getSpeeds(vector<int> ids, vector<float>& fbckSpeeds, bool mo
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getSpeeds(vector<float>& fbckSpeeds, bool moving)
+bool MotorHandler::getSpeeds(std::vector<float>& fbckSpeeds, bool moving)
 {
     return(getSpeeds(m_ids, fbckSpeeds, moving));
 }
@@ -841,7 +843,7 @@ bool MotorHandler::getSpeeds(vector<float>& fbckSpeeds, bool moving)
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getTorques(vector<int> ids, vector<float>& fbckTorques, bool moving)
+bool MotorHandler::getTorques(std::vector<int> ids, std::vector<float>& fbckTorques, bool moving)
 {
     for(auto id : ids) {
         if (!moving) {
@@ -880,12 +882,19 @@ bool MotorHandler::getTorques(vector<int> ids, vector<float>& fbckTorques, bool 
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getTorques(vector<float>& fbckTorques, bool moving)
+bool MotorHandler::getTorques(std::vector<float>& fbckTorques, bool moving)
 {
     return(getTorques(m_ids, fbckTorques, moving));
 }
 
-bool MotorHandler::getTemperatures(vector<int> ids, vector<int>& fbckTemperatures, bool moving)
+/**
+ * @brief       Get temperature feedback from input motors
+ * @param[in]   ids IDs of the motors receiving the commands
+ * @param[out]  fbckTemperatures Feedback temperatures [°C]
+ * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
+ * @return      1 if sending the commands was successful, 0 otherwise
+ */
+bool MotorHandler::getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures, bool moving)
 {
     for(auto id : ids) {
         if (!moving) {
@@ -924,7 +933,7 @@ bool MotorHandler::getTemperatures(vector<int> ids, vector<int>& fbckTemperature
  * @param[in]   moving 1 if motors are in motion, 0 if motor static. Default = 1
  * @return      1 if sending the commands was successful, 0 otherwise
  */
-bool MotorHandler::getTemperatures(vector<int>& fbckTemperatures, bool moving)
+bool MotorHandler::getTemperatures(std::vector<int>& fbckTemperatures, bool moving)
 {
     return(getTemperatures(m_ids, fbckTemperatures, moving));
 }

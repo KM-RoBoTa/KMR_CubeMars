@@ -18,9 +18,7 @@ sudo ip link set can0 up type can bitrate 1000000
 
 ## Todo
 - Update full impedance example
-- Write gravity compensation example (to test)
-- check if 0 kept on a single power-up
-
-- Check if no need to maintain position when 0-setting now that we stop the motors
-- Check if Kp, Kd can be varied during the run (+check if compatible on-the-run with the lib)
-- Check if the full impedance control actually works (use the software for easier checking)
+- Update + explain PID tuning in examples + mention typical Kp, Kd values without load
+- Talk about the PREEMPT multithreading (+ expected behavior in examples without overtimes)
+- Write github version
+- Add set up CAN in both versions of the documentation
