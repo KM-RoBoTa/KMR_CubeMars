@@ -1,6 +1,6 @@
 # How to use
 
-The library lives in the KMR::CBM namespace. 
+The library lives in the ```KMR::CBM``` namespace. 
 
 # Concept of the library
 
@@ -12,17 +12,15 @@ From a user's perspective, every interaction with the library needs to be done t
 
 ## MIT mode
 
-The control equation used by the motors is: <br/>
-$$
-T = Kp \cdot (p_{goal} - p_{curr}) + Kd \cdot (v_{goal} - v_{curr}) + Tff
-$$
+The control equation used by the motors is: 
+$$T = Kp \cdot (p_{goal} - p_{curr}) + Kd \cdot (v_{goal} - v_{curr}) + Tff$$
 
 with:
 - $` T `$ : input torque in Nm
 - $` Kp `$: proportional factor in Nm/rad
 - $` Kd `$: derivative factor in Nm/(rad/s)
-- $` p_{goal} `$ and \f$ p_{curr} \f$: goal and current positions respectively, in rad
-- $` v_{goal} `$ and \f$ v_{curr} \f$: goal and current speeds respectively, in rad/s
+- $` p_{goal} `$ and $` p_{curr} `$: goal and current positions respectively, in rad
+- $` v_{goal} `$ and $` v_{curr} `$: goal and current speeds respectively, in rad/s
 - $` Tff `$ : feedforward torque in Nm
 
 The user can control $` Kp `$, $` Kd `$, $` p_{goal} `$, $` v_{goal} `$ and $` Tff `$, which are sent in a CAN packet to a wished motor. The motor's firmware then internally calculates the corresponding input torque $` T `$.
@@ -41,6 +39,7 @@ When controlling all 5 parameters, the user controls the motor in impedance. By 
 # Axis definition
 
 The motors' axis is defined as follows:
+
 ![](../img/cubemars_motor.png)
 
 The counterclockwise rotation is therefore defined as positive.
