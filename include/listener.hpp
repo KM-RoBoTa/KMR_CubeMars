@@ -26,7 +26,16 @@ namespace KMR::CBM
 {
 
 /**
- * @brief   CAN bus listener, running in its own thread
+ * @brief   CAN bus listener
+ * @details The main goal of this class is to handle the listening of the CAN bus. \n
+ *          On construction, an object of this class creates a new thread that constantly listens 
+ *          to the CAN bus, and saves any information it reads there. On information receiving, it 
+ *          also raises internal flags to indicate new information has been received. \n
+ *          This class provides public methods that check if new information was received, by checking
+ *          said internal flags. If it's the case, these methods pull the flags down and return the 
+ *          receive confirmation, as well as any feedback values when applicable. In the case where 
+ *          the internal flags were not raised in a given time interval, the methods time out and 
+ *          return a motor response fail. 
  */
 class Listener {
 public:

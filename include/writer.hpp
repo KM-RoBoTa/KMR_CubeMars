@@ -23,6 +23,7 @@ namespace KMR::CBM
 
 /**
  * @brief   CAN bus writer
+ * @details This class takes care of creating and sending CAN packets to the CAN bus.
  */
 class Writer {
 public:

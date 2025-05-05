@@ -15,21 +15,33 @@
 #include "unistd.h"
 #include <cmath>
 
-
 #include <iostream>
 #include <sstream> 
 #include <fstream> 
 
 
+using namespace std;
 
-#define ENCODER_BIT_RESOLUTION  14
-#define ANG_RESOLUTION          2*M_PI/pow(2, ENCODER_BIT_RESOLUTION)
-#define FACTOR                  50 
-#define MIN_IMPULSE             FACTOR*ANG_RESOLUTION
-//#define MIN_IMPULSE             0.03
-//#define MIN_IMPULSE             1.57
+// --------------------------------------------------------------------------- //
+//                                EDIT HERE 
+// --------------------------------------------------------------------------- //
 
-#define CTRL_PERIOD_US  5000  // 5ms = 200 Hz
+// Id(s) and model(s) of motor(s)
+vector<int> ids = {1}; 
+int nbrMotors = ids.size();
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+
+// CAN bus
+const char* can_bus = "can0";
+
+// Kp and Kd (!! highly recommended to start with low values of Kp)
+#define Kp  150
+#define Kd  1
+
+// Control period
+#define CTRL_PERIOD_US  5000  // 5ms => 200 Hz
+// --------------------------------------------------------------------------- //
+
 #define MAX_CTR         1000
 
 #define MAX_SPEED       2*M_PI/1  // rad/s
@@ -40,34 +52,16 @@
 #define INCREMENT       SPEED1*CTRL_PERIOD_US/1000000.0
 #define INCREMENT2      SPEED2*CTRL_PERIOD_US/1000000.0
 
-#define Kp  150
-#define Kd  1
-
 
 // Stream
-std::ofstream logStream;
-std::ofstream trackingStream;
+std::ofstream logStream, trackingStream;
 
 // Idea: 200 Hz control loop -> 5 ms period
 // Speed = 2PI in 1 sec
 // -> Increment per loop = 2PI * 5ms = 0.03 rad
 
-
-using namespace std;
-
 int main()
 {
-    logStream.open ("../python_scripts/PID_tuning.csv");
-
-    cout << "Min impulse = " << MIN_IMPULSE << " rad" << endl;
-
-    float impulse = 0;
-
-    vector<int> ids(1,1);
-    int nbrMotors = ids.size();
-    vector<KMR::CBM::Model> models(nbrMotors, KMR::CBM::Model::AK60_6);
-
-    const char* can_bus = "can0";
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
     // Set Kp and Kd
@@ -87,31 +81,45 @@ int main()
     motorHandler.setZeroPosition();
     sleep(1);
 
+    // Set vars
+    float time = 0;
+    int ctr = 0, overtimeCtr = 0;
+    float angle = 0;
+    bool forward = 1;
+
+
+    // =======================================================================
+    //                First part: response to a typical impulse
+    // =======================================================================
+
     // Main loop
     cout << endl << endl << " ---------- Starting impulses ---------" << endl;
-    sleep(3);
+    logStream.open ("../python_scripts/PID_tuning.csv");
+    sleep(1);
 
-    int ctr = 0;
-    float time = 0;
+    float impulse = 0;
 
     // Main loop
     while (ctr < MAX_CTR) {
-        // Get feedback
+
         timespec start = KMR::CBM::time_s();
 
+        // Get new goal position
         if (ctr == 200)
             impulse = AVG_IMPULSE;
         else if (ctr == 600)
             impulse = 0;
 
+        // Get time
         time = ctr * CTRL_PERIOD_US/1000000.0;
 
+        // Get feedback
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
         else    
             motorHandler.getPositions(fbckPositions);
 
-        // Save fbck position, impulse and time, Kp, Kd
+        // Save time, goal position, fbck position, Kp, Kd
         logStream << time << "," << impulse << "," << fbckPositions[0] << "," << Kp << "," << Kd << endl;    
 
         // Send new goal positions
@@ -119,7 +127,6 @@ int main()
             goalPositions[i] = impulse;
 
         motorHandler.setPositions(goalPositions);
-
 
         // Increment counter and set the control loop to 5ms
         ctr++;
@@ -139,52 +146,38 @@ int main()
 
     sleep(1);
 
-    // Second part: tracking a full trajectory
-    cout << endl << endl;
-    cout << "Do you want to run the tracking? [y/n]" << endl;
-
-    char c;
-    while (c != 'y' && c != 'n') {
-        cin >> c;
-
-        if (c == 'y'){
-            break;
-        }
-
-        else if (c == 'n') {
-            cout << "Exiting" << endl;
-            exit(1);
-        }
-    }
-
-    sleep(1);
-    trackingStream.open("../python_scripts/tracking.csv");
-
-    float angle = 0;
-    bool forward = 1;
+    // =======================================================================
+    //                  Second part: tracking a full trajectory
+    // =======================================================================
 
     // Reset vars
     time = 0;
-    ctr = 0;
+    ctr = 0, overtimeCtr = 0;
+    angle = 0;
+    forward = 1;
 
-    // Main loop
+    trackingStream.open("../python_scripts/tracking.csv");
+
+    // ----- Starting tracking ----- //
+    cout << "Starting trajectory tracking" << endl;
+    sleep(1);
     timespec startTracking = KMR::CBM::time_s();
     while (ctr < MAX_CTR) {
-        // Get feedback
+
         timespec start = KMR::CBM::time_s();
 
+        // Get feedback
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
         else    
             motorHandler.getPositions(fbckPositions);
 
-        //time = ctr * CTRL_PERIOD_US/1000000.0;
-
+        // Get current time
         timespec now = KMR::CBM::time_s();
         double elapsedTracking = KMR::CBM::get_delta_us(now, startTracking); 
         time = elapsedTracking/1000000.0;
 
-        // Save fbck position, command and time, Kp, Kd
+        // Save time, goal angle, fbck position, Kp, Kd
         trackingStream << time << "," << angle << "," << fbckPositions[0] << "," << Kp << "," << Kd << endl;  
 
         // Send new goal positions
@@ -218,13 +211,24 @@ int main()
         double toSleep_us = CTRL_PERIOD_US-elapsed;
         if (toSleep_us < 0) {
             toSleep_us = 0;
-            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+            //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+            overtimeCtr++;
         }
 
         usleep(toSleep_us);
     }   
 
     trackingStream.close();
+
+    cout << endl << endl << "The PID tuning successfully finished." << endl;
+    cout << endl;
+    cout << "Loops longer than the control period due to scheduling delays: " << overtimeCtr <<
+            "/" << ctr << " (" << (float)overtimeCtr/(float)ctr*100.0 << "%)" << endl; 
+
+    motorHandler.getTemperatures(fbckTemperatures, 0);
+    cout << endl;
+    for (int i=0; i<nbrMotors; i++)
+        cout << "Motor " << ids[i] << "'s temperature is " << fbckTemperatures[i] << " °C" << endl;
 
     return(1);
 }

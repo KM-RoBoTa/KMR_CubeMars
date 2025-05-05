@@ -37,10 +37,10 @@ enum class OperatingMode {
  * @brief   Supported models by this library
  */
 enum class Model {
-    AK10_9 = 0,
-    AK60_6 = 1,
-    AK70_10 = 2,
-    AK80_6 = 3,
+    AK10_9,
+    AK60_6,
+    AK70_10,
+    AK80_6,
     AK80_9, 
     AK80_80, 
     AK80_8, 
@@ -50,6 +50,9 @@ enum class Model {
 
 /**
  * @brief   Structure saving the info of a motor
+ * @details The information saved by this structure is parameters depending on the motor model, 
+ *          but also all information gotten by the Listener, such as feedback values and receive
+ *          flags.
  */
 struct Motor {
     int id;

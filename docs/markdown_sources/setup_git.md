@@ -1,13 +1,12 @@
-# How to setup {#setup}
-[TOC]
+# How to setup
 
 ## Operating system 
-The library uses two threads, one of them being the Listener thread that listens to the CAN bus. \n 
+The library uses two threads, one of them being the Listener thread that listens to the CAN bus. <br/> 
 When using a kernel configuration that does not support sufficient kernel preemption, there are delays due to the scheduling of the Listener thread. During the first tests, using an armv7l architecture with an SMP kernel, those delays happened in around 2% of loops, resulting in those loops being much longer than what they're supposed to be (10-20 ms instead of about 2 ms), throwing off the control loop.
 
 Using the official image of Archlinux-RPI, using the aarch64 architecture (PREEMPT_DYNAMIC kernel configuration) instantly solved this problem.
 
-To check if the operating system supports sufficient preemption, it is recommended to run the examples (see more in the [use section](#how-to-use)). At the end of the program, there should be no overtimes reported.
+To check if the operating system supports sufficient preemption, it is recommended to run the examples (see more in the [use section](use_git.md)). At the end of the program, there should be no overtimes reported.
 
 ## Dependencies
 This library is dependent on the following tools that need to be installed first:
@@ -32,7 +31,7 @@ This will generate the static library ```libKMR_dxl.a``` in the "build" folder, 
 
 
 ## Include in a project
-It is very straightforward to include this library in a project. \n
+It is very straightforward to include this library in a project. <br/>
 All the headers are located in "KMR_CubeMars/include", and, as already mentioned, the static libraries in "KMR_CubeMars/build".
 
 In the root CMakeLists.txt of the project, add:
@@ -75,4 +74,4 @@ sudo ip link set can0 up type can bitrate 1000000
 ```
 
 
-Next: how to [use](#how-to-use)
+Next: how to [use](use_git.md)
