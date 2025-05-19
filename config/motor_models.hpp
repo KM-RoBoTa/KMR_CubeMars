@@ -126,6 +126,19 @@ struct AK80_8_table : ModelParameters {
     }
 };
 
+/**
+ * @brief   Control table of AK80-64 motors
+ */
+struct AK80_64_table : ModelParameters {
+    AK80_64_table ()
+    {
+        minSpeed  = -8;
+        maxSpeed  = +8;
+        minTorque = -144;
+        maxTorque = +144;
+    }
+};
+
 }
 
 #endif

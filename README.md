@@ -47,5 +47,6 @@ This code is under MIT licence: https://opensource.org/licenses/MIT
 - AK80-8
 - AK80-9
 - AK80-80
+- AK80-64
      
 Note: the documentation explains how to add a model into the library

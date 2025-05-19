@@ -43,7 +43,8 @@ enum class Model {
     AK80_6,
     AK80_9, 
     AK80_80, 
-    AK80_8, 
+    AK80_8,
+    AK80_64,
     UNDEF_MODEL
 };
 
@@ -106,23 +107,26 @@ struct Motor {
             case Model::AK10_9:
                 parameters = AK10_9_table();
                 break;
-            case Model::AK60_6 :
+            case Model::AK60_6:
                 parameters = AK60_6_table();
                 break;
             case Model::AK70_10:
                 parameters = AK70_10_table();
                 break;
-            case Model::AK80_6 :
+            case Model::AK80_6:
                 parameters = AK80_6_table();
                 break;
-            case Model::AK80_80 :
+            case Model::AK80_80:
                 parameters = AK80_80_table();
                 break;
-            case Model::AK80_8 :
+            case Model::AK80_8:
                 parameters = AK80_8_table();
                 break;
-            case Model::AK80_9 :
+            case Model::AK80_9:
                 parameters = AK80_9_table();
+                break; 
+            case Model::AK80_64:
+                parameters = AK80_64_table();
                 break; 
             default:
                 break;
