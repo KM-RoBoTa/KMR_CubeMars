@@ -11,10 +11,10 @@ To check if the operating system supports sufficient preemption, it is recommend
 ## Dependencies
 This library is dependent on the following tools that need to be installed first:
 - CMake
-- (Doxygen and Graphviz if you wish to regenerate the documentation locally)
+- (Doxygen and Graphviz if you wish to regenerate the documentation locally, with Mathjax to have pretty equations)
 
 ```bash
-sudo pacman -S cmake doxygen graphviz
+sudo pacman -S cmake doxygen graphviz mathjax
 ```
 
 ## Installation
