@@ -70,6 +70,7 @@ MotorHandler::MotorHandler(std::vector<int> ids, const char* can_bus, std::vecto
  */ 
 MotorHandler::~MotorHandler()
 {
+    cout << endl << endl << "------------ Disabling motors ---------" << endl;
     bool success = disableMotors();
     if (!success) {
         cout << "Error! Motors were not disabled correctly. ";
@@ -139,6 +140,8 @@ int MotorHandler::openSocket(const char* can_bus)
  */ 
 void MotorHandler::pingMotors()
 {
+    cout << endl << endl << "-------- Pinging motors --------------" << endl;
+
     for(auto id : m_ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to ping motor " << id << endl;
@@ -311,6 +314,7 @@ bool MotorHandler::stopMotor(int id)
 bool MotorHandler::setZeroPosition(std::vector<int> ids)
 {
     // Stop the motors before setting their 0-position ("parking mode")
+    cout << endl << " ---------- Stopping motors ---------" << endl;
     bool motorsStopped = stopMotors(ids);
     if (!motorsStopped) {
         cout << "[FAILED REQUEST] Failed to stop all motors before setting their zero" << endl;
@@ -318,19 +322,25 @@ bool MotorHandler::setZeroPosition(std::vector<int> ids)
     }
 
     // Send the 0-setting command
+    cout << endl << " ---------- Writing 0 ---------" << endl;
     for(auto id : ids) {
+        cout << "Writing zero pos to motor " << id << endl;
         if(m_writer->writeZeroPosition(id) < 0)
             cout << "[FAILED REQUEST] Failed to send zero-position to motor " << id << endl;
     }
 
     int fullSuccess = 0;
     for(auto id : ids) {
+        cout << "Waiting for zero pos confirmation from motor " << id << endl;
         bool success = m_listener->fbckReceived(id);
         fullSuccess += success;
     }
 
     // Maintain the position 
+    //usleep(1000);
+    cout << endl << " ---------- Maintaing position ---------" << endl;
     bool success2 = maintainPosition(ids, 0);
+    cout << "Finished maintaining pos function" << endl;
 
     // If no timeout for any motor, return 1. Else, return 0
     if (fullSuccess == ids.size())
@@ -380,12 +390,15 @@ bool MotorHandler::setCommand(std::vector<int> ids, std::vector<float> positions
                               std::vector<float> Kds, std::vector<float> torques)
 {
     for (int i=0; i<ids.size(); i++) {
-        if(m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]) < 0)
+        cout << "Sending command to motor " << ids[i] << endl;
+        int sent = m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]);
+        if( sent < 0)
             cout << "[FAILED REQUEST] Failed to send impendance command to motor " << ids[i] << endl;
     }
 
     int fullSuccess = 0;
     for(auto id : ids) {
+        cout << "Waiting for command confirmation from motor " << id << endl;
         bool success = m_listener->fbckReceived(id);
         fullSuccess += success;
     }
@@ -643,6 +656,7 @@ bool MotorHandler::setTorques(std::vector<float> torques)
 bool MotorHandler::maintainPosition(std::vector<int> ids, bool moving)
 {
     vector<float> fbckPositions(ids.size(), 0);
+    cout << endl << "Getting positions" << endl;
     bool success = getPositions(ids, fbckPositions, moving);
     if (!success) {
         cout << "Error! Could not get fbck positions to maintain position" << endl;
@@ -656,7 +670,9 @@ bool MotorHandler::maintainPosition(std::vector<int> ids, bool moving)
     vector<float> speeds(ids.size(), 0);
     vector<float> torques(ids.size(), 0);
 
+    cout << endl << "Sending maintaining pos to all motors" << endl;
     success = setCommand(ids, fbckPositions, speeds, Kps, Kds, torques);
+    cout << "Finished set command line" << endl << endl;
     return success;
 }
 
@@ -743,6 +759,7 @@ bool MotorHandler::getFeedbacks(std::vector<float>& fbckPositions,
 bool MotorHandler::getPositions(std::vector<int> ids, std::vector<float>& fbckPositions, bool moving)
 {
     for(auto id : ids) {
+        cout << "Getting position from motor " << id << endl;
         if (!moving) {
             if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
                 cout << "[FAILED REQUEST] Failed to request position feedback for motor " << id << endl;
@@ -761,6 +778,7 @@ bool MotorHandler::getPositions(std::vector<int> ids, std::vector<float>& fbckPo
     int fullSuccess = 0;
     for (int i=0; i<nbrMotors; i++) {
         float temp = 0;
+        cout << "Getting position fbck confirmation from motor " << ids[i] << endl;
         bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
                                                 fbckTorques[i], fbckTemperatures[i]);
         fullSuccess += success;
