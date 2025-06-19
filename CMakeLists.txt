@@ -37,3 +37,7 @@ add_executable(singleThread examples/singleThread.cpp)
 target_link_libraries(singleThread ${PROJECT_NAME})
 add_executable(PID_tuning examples/PID_tuning.cpp)
 target_link_libraries(PID_tuning ${PROJECT_NAME})
+
+
+add_executable(ping examples/ping.cpp)
+target_link_libraries(ping ${PROJECT_NAME})
