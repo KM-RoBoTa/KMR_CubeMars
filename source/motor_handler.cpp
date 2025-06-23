@@ -25,7 +25,7 @@
 
 #include "motor_handler.hpp"
 
-const int SOCKET_TIMEOUT_US = 30*1000; // 30ms in us
+const int SOCKET_TIMEOUT_US = 1*1000; // 1ms in us
 
 using namespace std;
 
@@ -142,6 +142,7 @@ void MotorHandler::pingMotors()
     for(auto id : m_ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to ping motor " << id << endl;
+        usleep(1000);
     }
 
     cout << endl;
