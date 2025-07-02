@@ -652,8 +652,8 @@ bool MotorHandler::maintainPosition(std::vector<int> ids, bool moving)
 
     // We want to maintain position, but we have no guarantee Kp and Kd are set.
     // Therefore, using some default Kp and Kd values
-    vector<float> Kps(ids.size(), 150);
-    vector<float> Kds(ids.size(), 2);
+    vector<float> Kps(ids.size(), 200);
+    vector<float> Kds(ids.size(), 1);
     vector<float> speeds(ids.size(), 0);
     vector<float> torques(ids.size(), 0);
 
