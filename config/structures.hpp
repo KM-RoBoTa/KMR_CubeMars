@@ -21,7 +21,7 @@
 #include "motor_models.hpp"
 
 #define FRAME_LENGTH        8
-#define RESPONSE_TIMEOUT    30*1000 // us
+#define RESPONSE_TIMEOUT    1*1000 // us
 
 namespace KMR::CBM
 {
