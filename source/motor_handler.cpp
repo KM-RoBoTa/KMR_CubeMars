@@ -25,7 +25,7 @@
 
 #include "motor_handler.hpp"
 
-const int SOCKET_TIMEOUT_US = 1*1000; // 1ms in us
+const int SOCKET_TIMEOUT_US = 30*1000; // 1ms in us
 
 using namespace std;
 
