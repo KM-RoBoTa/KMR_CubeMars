@@ -139,22 +139,22 @@ int MotorHandler::openSocket(const char* can_bus)
  */ 
 void MotorHandler::pingMotors()
 {
+    bool fail = 0;
+
     for(auto id : m_ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to ping motor " << id << endl;
-        usleep(1000);
-    }
-
-    cout << endl;
-    for(auto id : m_ids) {
-        bool success = m_listener->fbckReceived(id);
-        if (success)
+        
+        if(m_listener->fbckReceived(id))
             cout << "Motor " << id << " pinged successfully!" << endl;
         else {
             cout << "Error! Motor " << id << " is not responding" << endl;
-            exit(1);
+            fail = 1;
         }
     }
+
+    if(fail)
+        exit(1);
 }            
 
 /**

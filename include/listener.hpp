@@ -47,16 +47,13 @@ public:
                       float& fbckTorque, int& fbckTemperature);
 
 private:
-    // Thread
-    bool m_stopThread = 0;
-    std::thread m_thread;
-    std::mutex m_mutex;
+
+    int m_socket = -1;
 
     std::vector<Motor*> m_motors;
     int m_nbrMotors;
     std::vector<int> m_ids;
 
-    int listenerLoop(int s);
     void parseFrame(can_frame frame);
     float convertParameter_to_SI(int x, float xMin, float xMax, int bitSize);
 };

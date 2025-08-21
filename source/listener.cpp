@@ -41,8 +41,7 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
 {
 	m_motors = motors;
 	m_nbrMotors = motors.size();
-    m_stopThread = false;
-    m_thread = thread(&Listener::listenerLoop, this, s);
+	m_socket = s;
 	m_ids = ids;
 
     cout << "Creating the CAN listener's thread..." << endl;
@@ -54,46 +53,7 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
  */
 Listener::~Listener()
 {
-	// Change the internal boolean to get the thread out of its loop function
-	{
-		scoped_lock lock(m_mutex);
-		m_stopThread = true;	
-	}	
-    
-	// Block the main thread until the Listener thread finishes
-    if (m_thread.joinable()) 
-        m_thread.join();
 
-	cout << "Listener thread safely stopped" << endl;
-}
-
-/**
- * @brief       Function executed by the Listener thread
- * @param[in]   s Socket
- * @retval      1 when the thread is finished
- */
-int Listener::listenerLoop(int s)
-{
-	bool stopThread = 0;
-
-	cout << "Starting CAN bus monitoring" << endl;
-    while(!stopThread) {
-
-        struct can_frame frame;
-        int nbytes = read(s, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us
-
-        if (nbytes > 0)
-			parseFrame(frame);
-
-		// Thread sleep for scheduling
-		std::this_thread::sleep_for(chrono::microseconds(10));  // 50 at start
-		{
-			scoped_lock lock(m_mutex);
-			stopThread = m_stopThread;	
-		}
-    }
-
-    return 0;
 }
 
 /**
@@ -149,7 +109,6 @@ void Listener::parseFrame(can_frame frame)
 	torque = -torque;
 
 	// Save to internal structure
-	scoped_lock lock(m_mutex);
 	m_motors[idx]->fbckPosition = position;
 	m_motors[idx]->fbckSpeed = speed;
 	m_motors[idx]->fbckTorque = torque;
@@ -166,10 +125,26 @@ void Listener::parseFrame(can_frame frame)
  */
 bool Listener::fbckReceived(int id)
 {
-	int idx = getIndex(m_ids, id);
-	bool available = 0;
+	struct can_frame frame;
+	int nbytes = read(m_socket, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us
 
-	timespec start = time_s();
+	bool available = 0;
+	if (nbytes > 0) {
+		parseFrame(frame);
+
+		int idx = getIndex(m_ids, id);
+		available = m_motors[idx]->fr_fbckReady;
+
+		// Clear update flag
+		m_motors[idx]->fr_fbckReady = 0;
+	}
+	else
+		available = 0;
+
+	return available;
+
+
+	/*timespec start = time_s();
 	while (available != 1) {
 		// Check for timeout
 		timespec end = time_s();
@@ -186,7 +161,7 @@ bool Listener::fbckReceived(int id)
 		m_motors[idx]->fr_fbckReady = 0;
 	}
 
-	return available;		
+	return available;		*/
 }
 
 
@@ -202,7 +177,33 @@ bool Listener::fbckReceived(int id)
 bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 							float& fbckTorque, int& fbckTemperature)
 {
-	int idx = getIndex(m_ids, id);
+	struct can_frame frame;
+	int nbytes = read(m_socket, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us
+
+	bool available = 0;
+	if (nbytes > 0) {
+		parseFrame(frame);
+
+		int idx = getIndex(m_ids, id);
+		available = m_motors[idx]->fr_fbckReady;
+
+		if (available) {
+			fbckPosition = m_motors[idx]->fbckPosition;
+			fbckSpeed = m_motors[idx]->fbckSpeed;
+			fbckTorque = m_motors[idx]->fbckTorque;
+			fbckTemperature = m_motors[idx]->fbckTemperature;
+		}
+
+		// Clear update flag
+		m_motors[idx]->fr_fbckReady = 0;
+	}
+	else
+		available = 0;
+
+	return available;
+
+
+	/*int idx = getIndex(m_ids, id);
 	bool available = 0;
 
 	timespec start = time_s();
@@ -226,7 +227,7 @@ bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 		m_motors[idx]->fr_fbckReady = 0;
 	}
 
-	return available;	
+	return available;	*/
 }
 
 }
