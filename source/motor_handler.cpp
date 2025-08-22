@@ -25,7 +25,7 @@
 
 #include "motor_handler.hpp"
 
-const int SOCKET_TIMEOUT_US = 30*1000; // 1ms in us
+const int SOCKET_TIMEOUT_US = 1*1000; // 1ms in us
 
 using namespace std;
 
@@ -78,6 +78,9 @@ MotorHandler::~MotorHandler()
 
     delete m_listener;
     delete m_writer;
+
+    m_listener = nullptr;
+    m_writer = nullptr;
 
     for (int i=0; i<m_nbrMotors; i++)
         delete m_motors[i];
@@ -152,6 +155,7 @@ void MotorHandler::pingMotors()
             fail = 1;
         }
     }
+    cout << endl;
 
     if(fail)
         exit(1);
@@ -196,15 +200,18 @@ void MotorHandler::setKds(std::vector<int> ids, std::vector<float> Kds)
  */ 
 bool MotorHandler::enableMotors(std::vector<int> ids)
 {
+    int fullSuccess = 0;
+
     for(auto id : ids) {
         if(m_writer->writeEnterMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send the enable command to motor " << id << endl;
-    }
+        else {
+            bool success = m_listener->fbckReceived(id);
+            fullSuccess += success;
 
-    int fullSuccess = 0;
-    for(auto id : ids) {
-        bool success = m_listener->fbckReceived(id);
-        fullSuccess += success;
+            if (!success)
+                cout << "[FAIL] Could not enable the motor " << id << endl;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -230,6 +237,8 @@ bool MotorHandler::enableMotors()
  */ 
 bool MotorHandler::disableMotors(std::vector<int> ids)
 {
+    int fullSuccess = 0;
+
     // Stop the motors first ("parking" mode)
     bool success = stopMotors(ids);
     if (!success)
@@ -239,12 +248,10 @@ bool MotorHandler::disableMotors(std::vector<int> ids)
     for(auto id : ids) {
         if(m_writer->writeExitMITMode(id) < 0)
             cout << "[FAILED REQUEST] Failed to send the disabling command to motor " << id << endl;
-    }
-
-    int fullSuccess = 0;
-    for(auto id : ids) {
-        bool success = m_listener->fbckReceived(id);
-        fullSuccess += success;
+        else {
+            bool success = m_listener->fbckReceived(id);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -262,6 +269,8 @@ bool MotorHandler::disableMotors()
 {
     return(disableMotors(m_ids));
 }
+
+// DEBUG TODO HERE
 
 /**
  *  @brief      Stop input motors: torque off
@@ -319,22 +328,22 @@ bool MotorHandler::setZeroPosition(std::vector<int> ids)
     }
 
     // Send the 0-setting command
+    int fullSuccess = 0;
+
     for(auto id : ids) {
         if(m_writer->writeZeroPosition(id) < 0)
             cout << "[FAILED REQUEST] Failed to send zero-position to motor " << id << endl;
-    }
-
-    int fullSuccess = 0;
-    for(auto id : ids) {
-        bool success = m_listener->fbckReceived(id);
-        fullSuccess += success;
+        else {
+            bool success = m_listener->fbckReceived(id);
+            fullSuccess += success;
+        }
     }
 
     // Maintain the position 
-    bool success2 = maintainPosition(ids, 0);
+    bool successMaintain = maintainPosition(ids, 0);
 
     // If no timeout for any motor, return 1. Else, return 0
-    if (fullSuccess == ids.size())
+    if (fullSuccess == ids.size() && successMaintain)
         return 1;
     else
         return 0;  
@@ -380,15 +389,15 @@ bool MotorHandler::setCommand(std::vector<int> ids, std::vector<float> positions
                               std::vector<float> speeds, std::vector<float> Kps,
                               std::vector<float> Kds, std::vector<float> torques)
 {
+    int fullSuccess = 0;
+
     for (int i=0; i<ids.size(); i++) {
         if(m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]) < 0)
             cout << "[FAILED REQUEST] Failed to send impendance command to motor " << ids[i] << endl;
-    }
-
-    int fullSuccess = 0;
-    for(auto id : ids) {
-        bool success = m_listener->fbckReceived(id);
-        fullSuccess += success;
+        else {
+            bool success = m_listener->fbckReceived(ids[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -691,23 +700,23 @@ bool MotorHandler::getFeedbacks(std::vector<int> ids, std::vector<float>& fbckPo
                                 std::vector<float>& fbckSpeeds, std::vector<float>& fbckTorques,
                                 std::vector<int>& fbckTemperatures, bool moving)
 {
-    for(auto id : ids) {
-        if (!moving) {
-            if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
-                cout << "[FAILED REQUEST] Failed to request feedback for motor " << id << endl;
-        }
-        else {
-            if(m_writer->writePreviousCommand(id) < 0)  // When moving, resend previous command
-                cout << "[FAILED REQUEST] Failed to request feedback for motor " << id << endl;
-        }
-    }
-
     int fullSuccess = 0;
+
     for (int i=0; i<ids.size(); i++) {
-        float temp = 0;
-        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
-                                                fbckTorques[i], fbckTemperatures[i]);
-        fullSuccess += success;
+        bool successWrite = 0;
+        if (!moving)
+            successWrite = m_writer->writeEnterMITMode(ids[i]); // Entering mode is also the command for fbck request
+        else
+            successWrite = m_writer->writePreviousCommand(ids[i]);
+
+        if(successWrite < 0)  
+            cout << "[FAILED REQUEST] Failed to request feedback for motor " << ids[i] << endl;
+        else {
+            float temp = 0;
+            bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                    fbckTorques[i], fbckTemperatures[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -743,28 +752,27 @@ bool MotorHandler::getFeedbacks(std::vector<float>& fbckPositions,
  */
 bool MotorHandler::getPositions(std::vector<int> ids, std::vector<float>& fbckPositions, bool moving)
 {
-    for(auto id : ids) {
-        if (!moving) {
-            if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
-                cout << "[FAILED REQUEST] Failed to request position feedback for motor " << id << endl;
-        }
-        else {
-            if(m_writer->writePreviousCommand(id) < 0)  // When moving, resend previous command
-                cout << "[FAILED REQUEST] Failed to request position feedback for motor " << id << endl;
-        }
-    }
-
     int nbrMotors = ids.size();
-    vector<float> fbckSpeeds(nbrMotors, 0);
-    vector<float> fbckTorques(nbrMotors, 0);
-    vector<int> fbckTemperatures(nbrMotors, 0);
-
     int fullSuccess = 0;
+
     for (int i=0; i<nbrMotors; i++) {
-        float temp = 0;
-        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
-                                                fbckTorques[i], fbckTemperatures[i]);
-        fullSuccess += success;
+        bool successWrite = 0;
+        if (!moving)
+            successWrite = m_writer->writeEnterMITMode(ids[i]); // Entering mode is also the command for fbck request
+        else
+            successWrite = m_writer->writePreviousCommand(ids[i]);
+
+        if(successWrite < 0)  
+            cout << "[FAILED REQUEST] Failed to request position feedback for motor " << ids[i] << endl;
+        else {
+            vector<float> fbckSpeeds(nbrMotors, 0);
+            vector<float> fbckTorques(nbrMotors, 0);
+            vector<int> fbckTemperatures(nbrMotors, 0);
+
+            bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                    fbckTorques[i], fbckTemperatures[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -773,7 +781,6 @@ bool MotorHandler::getPositions(std::vector<int> ids, std::vector<float>& fbckPo
     else
         return 0;  
 }
-
 
 /**
  * @brief       Get position feedback from all motors
@@ -795,28 +802,27 @@ bool MotorHandler::getPositions(std::vector<float>& fbckPositions, bool moving)
  */
 bool MotorHandler::getSpeeds(std::vector<int> ids, std::vector<float>& fbckSpeeds, bool moving)
 {
-    for(auto id : ids) {
-        if (!moving) {
-            if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
-                cout << "[FAILED REQUEST] Failed to request speed feedback for motor " << id << endl;
-        }
-        else {
-            if(m_writer->writePreviousCommand(id) < 0)  // When moving, resend previous command
-                cout << "[FAILED REQUEST] Failed to request speed feedback for motor " << id << endl;
-        }
-    }
-
     int nbrMotors = ids.size();
-    vector<float> fbckPositions(nbrMotors, 0);
-    vector<float> fbckTorques(nbrMotors, 0);
-    vector<int> fbckTemperatures(nbrMotors, 0);
-
     int fullSuccess = 0;
+
     for (int i=0; i<nbrMotors; i++) {
-        float temp = 0;
-        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
-                                                fbckTorques[i], fbckTemperatures[i]);
-        fullSuccess += success;
+        bool successWrite = 0;
+        if (!moving)
+            successWrite = m_writer->writeEnterMITMode(ids[i]); // Entering mode is also the command for fbck request
+        else
+            successWrite = m_writer->writePreviousCommand(ids[i]);
+
+        if(successWrite < 0)  
+            cout << "[FAILED REQUEST] Failed to request speed feedback for motor " << ids[i] << endl;
+        else {
+            vector<float> fbckPositions(nbrMotors, 0);
+            vector<float> fbckTorques(nbrMotors, 0);
+            vector<int> fbckTemperatures(nbrMotors, 0);
+
+            bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                    fbckTorques[i], fbckTemperatures[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -846,28 +852,27 @@ bool MotorHandler::getSpeeds(std::vector<float>& fbckSpeeds, bool moving)
  */
 bool MotorHandler::getTorques(std::vector<int> ids, std::vector<float>& fbckTorques, bool moving)
 {
-    for(auto id : ids) {
-        if (!moving) {
-            if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
-                cout << "[FAILED REQUEST] Failed to request torque feedback for motor " << id << endl;
-        }
-        else {
-            if(m_writer->writePreviousCommand(id) < 0)  // When moving, resend previous command
-                cout << "[FAILED REQUEST] Failed to request torque feedback for motor " << id << endl;
-        }
-    }
-
     int nbrMotors = ids.size();
-    vector<float> fbckPositions(nbrMotors, 0);
-    vector<float> fbckSpeeds(nbrMotors, 0);
-    vector<int> fbckTemperatures(nbrMotors, 0);
-
     int fullSuccess = 0;
+
     for (int i=0; i<nbrMotors; i++) {
-        float temp = 0;
-        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
-                                                fbckTorques[i], fbckTemperatures[i]);
-        fullSuccess += success;
+        bool successWrite = 0;
+        if (!moving)
+            successWrite = m_writer->writeEnterMITMode(ids[i]); // Entering mode is also the command for fbck request
+        else
+            successWrite = m_writer->writePreviousCommand(ids[i]);
+
+        if(successWrite < 0)  
+            cout << "[FAILED REQUEST] Failed to request torque feedback for motor " << ids[i] << endl;
+        else {
+            vector<float> fbckPositions(nbrMotors, 0);
+            vector<float> fbckSpeeds(nbrMotors, 0);
+            vector<int> fbckTemperatures(nbrMotors, 0);
+
+            bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                    fbckTorques[i], fbckTemperatures[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
@@ -897,35 +902,34 @@ bool MotorHandler::getTorques(std::vector<float>& fbckTorques, bool moving)
  */
 bool MotorHandler::getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures, bool moving)
 {
-    for(auto id : ids) {
-        if (!moving) {
-            if(m_writer->writeEnterMITMode(id) < 0)  // Entering mode is also the command for fbck request
-                cout << "[FAILED REQUEST] Failed to request temperature feedback for motor " << id << endl;
-        }
-        else {
-            if(m_writer->writePreviousCommand(id) < 0)  // When moving, resend previous command
-                cout << "[FAILED REQUEST] Failed to request temperature feedback for motor " << id << endl;
-        }
-    }
-
     int nbrMotors = ids.size();
-    vector<float> fbckPositions(nbrMotors, 0);
-    vector<float> fbckSpeeds(nbrMotors, 0);
-    vector<float> fbckTorques(nbrMotors, 0);
-
     int fullSuccess = 0;
+
     for (int i=0; i<nbrMotors; i++) {
-        float temp = 0;
-        bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
-                                                fbckTorques[i], fbckTemperatures[i]);
-        fullSuccess += success;
+        bool successWrite = 0;
+        if (!moving)
+            successWrite = m_writer->writeEnterMITMode(ids[i]); // Entering mode is also the command for fbck request
+        else
+            successWrite = m_writer->writePreviousCommand(ids[i]);
+
+        if(successWrite < 0)  
+            cout << "[FAILED REQUEST] Failed to request temperature feedback for motor " << ids[i] << endl;
+        else {
+            vector<float> fbckPositions(nbrMotors, 0);
+            vector<float> fbckSpeeds(nbrMotors, 0);
+            vector<float> fbckTorques(nbrMotors, 0);
+
+            bool success = m_listener->getFeedbacks(ids[i], fbckPositions[i], fbckSpeeds[i],
+                                                    fbckTorques[i], fbckTemperatures[i]);
+            fullSuccess += success;
+        }
     }
 
     // If no timeout for any motor, return 1. Else, return 0
     if (fullSuccess == ids.size())
         return 1;
     else
-        return 0;  
+        return 0;   
 }
 
 /**

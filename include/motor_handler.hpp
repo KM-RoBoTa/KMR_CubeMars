@@ -34,6 +34,7 @@ namespace KMR::CBM
  */
 class MotorHandler {
 public:
+    bool enableMotors();// DEBUG
     MotorHandler(std::vector<int> ids, const char* can_bus, std::vector<Model> models);
     ~MotorHandler();
 
@@ -109,7 +110,7 @@ private:
 
     // ------ Enabling/disabling = setting/exiting MIT mode ------ //
 
-    bool enableMotors();
+
     bool enableMotors(std::vector<int> ids);
     bool disableMotors();
     bool disableMotors(std::vector<int> ids);

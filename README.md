@@ -1,5 +1,32 @@
 # Library for CubeMars AK motors in MIT mode, in C++
 
+TODO:
+- candump -xtd can0
+- continue from stopMotors, that needs to be checked
+- clear all flags before sending anything, just in case
+
+1 motor (2 physically connected);
+Write enable motors elapsed: 9 us
+Read enable motors elapsed: 959 us
+Total enable motors elapsed: 1066 us
+
+2 motors:
+Write enable motors elapsed: 8 us
+Read enable motors elapsed: 609 us
+Write enable motors elapsed: 10 us
+Read enable motors elapsed: 353 us
+Total enable motors elapsed: 1100 us
+
+3 motors:
+Write enable motors elapsed: 9 us
+Read enable motors elapsed: 355 us
+Write enable motors elapsed: 8 us
+Read enable motors elapsed: 358 us
+Write enable motors elapsed: 8 us
+Read enable motors elapsed: 339 us
+Total enable motors elapsed: 1234 us
+
+
 This library allows the easy control of CubeMars AK motors in MIT mode. <br /> 
 It is written in C++ for the Linux OS, but has only been tested with Archlinux ARM. <br /> 
 It uses SI units, the only exception being temperature expressed in °C instead of Kelvins.
