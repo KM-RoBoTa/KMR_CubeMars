@@ -26,6 +26,9 @@ Write enable motors elapsed: 8 us
 Read enable motors elapsed: 339 us
 Total enable motors elapsed: 1234 us
 
+- Position example with 3 motors: Set: 1005 us, get: 1007 us
+- Position example with 2 motors: Set: 698 us, get: 692 us
+- Position example with 1 motor: Set: 348 us, get: 341 us
 
 This library allows the easy control of CubeMars AK motors in MIT mode. <br /> 
 It is written in C++ for the Linux OS, but has only been tested with Archlinux ARM. <br /> 

@@ -178,7 +178,13 @@ bool Listener::getFeedbacks(int id, float& fbckPosition, float& fbckSpeed,
 							float& fbckTorque, int& fbckTemperature)
 {
 	struct can_frame frame;
+
+	// debug
+	timespec start = time_s();
 	int nbytes = read(m_socket, &frame, sizeof(can_frame));  // Usually takes ~4us, rarely jumping to 26 us
+	timespec end = time_s();
+	cout << "Elapsed read for a single motor: " << get_delta_us(end, start) << " us" << endl;
+
 
 	bool available = 0;
 	if (nbytes > 0) {
