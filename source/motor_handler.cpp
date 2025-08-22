@@ -106,13 +106,18 @@ int MotorHandler::openSocket(const char* can_bus)
     else   
         cout << "Socket created successfully" << endl;
 
-    // Set socket timeout
+    // Set socket timeouts
     struct timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = SOCKET_TIMEOUT_US;
-    int success = setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+    int success = setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
     if (success < 0) {
-        cout << "Error setting the timeout to the CAN socket" << endl;
+        cout << "Error setting the sending timeout to the CAN socket" << endl;
+        exit(1);
+    }
+    success = setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+    if (success < 0) {
+        cout << "Error setting the receive timeout to the CAN socket" << endl;
         exit(1);
     }
 

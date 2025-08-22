@@ -18,7 +18,7 @@
 #include <linux/sockios.h>
 
 #define FRAME_LENGTH 8
-const int SOCKET_TIMEOUT_US = 5*1000; // 30ms in us
+const int SOCKET_TIMEOUT_US = 1*1000; // 30ms in us
 
 // --------------------------------------------------------------------------- //
 //                                EDIT HERE 
@@ -98,13 +98,18 @@ int openSocket()
     else   
         cout << "Socket created successfully" << endl;
 
-    // Set socket timeout
+    // Set socket timeouts
     struct timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = SOCKET_TIMEOUT_US;
-    int success = setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+    int success = setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv));
     if (success < 0) {
-        cout << "Error setting the timeout to the CAN socket" << endl;
+        cout << "Error setting the sending timeout to the CAN socket" << endl;
+        exit(1);
+    }
+    success = setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+    if (success < 0) {
+        cout << "Error setting the receive timeout to the CAN socket" << endl;
         exit(1);
     }
 
