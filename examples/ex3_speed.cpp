@@ -27,9 +27,9 @@ using namespace std;
 // --------------------------------------------------------------------------- //
 
 // Id(s) and model(s) of motor(s)
-vector<int> ids = {1}; 
+vector<int> ids = {1, 4, 5}; 
 int nbrMotors = ids.size();
-vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6};
 
 const char* can_bus = "can0";
 // --------------------------------------------------------------------------- //
@@ -41,7 +41,7 @@ int main()
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
     // Set Kd (Kp not required for speed control)
-    vector<float> Kds(nbrMotors, 2);
+    vector<float> Kds(nbrMotors, 1);
     motorHandler.setKds(ids, Kds);
     
     // Create variables

@@ -24,7 +24,7 @@ using namespace std;
 // --------------------------------------------------------------------------- //
 
 // Id(s) and model(s) of motor(s)
-vector<int> ids = {1, 3, 4}; 
+vector<int> ids = {1, 4, 5}; 
 int nbrMotors = ids.size();
 vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6};
 
@@ -35,7 +35,6 @@ const char* can_bus = "can0";
 int main()
 {
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
-    motorHandler.enableMotors(); // debug
 
     return(1);
 }

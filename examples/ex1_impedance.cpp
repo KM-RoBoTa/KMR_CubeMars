@@ -48,7 +48,7 @@ int main()
     float goalSpeed = 0;
     float goalTorque = 0.2;
     float Kp = 150;
-    float Kd = 2;
+    float Kd = 1;
 
     vector<float> positions(nbrMotors, 0);
     vector<float> speeds(nbrMotors, 0);

@@ -27,9 +27,9 @@ using namespace std;
 // --------------------------------------------------------------------------- //
 
 // Id(s) and model(s) of motor(s)
-vector<int> ids = {1}; 
+vector<int> ids = {1, 4, 5}; 
 int nbrMotors = ids.size();
-vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6};
 
 const char* can_bus = "can0";
 // --------------------------------------------------------------------------- //
@@ -41,7 +41,7 @@ int main()
 
     // Set Kp and Kd
     vector<float> Kps(nbrMotors, 100);
-    vector<float> Kds(nbrMotors, 2);
+    vector<float> Kds(nbrMotors, 1);
     motorHandler.setKps(ids, Kps);
     motorHandler.setKds(ids, Kds);
     
@@ -68,23 +68,27 @@ int main()
         timespec start = KMR::CBM::time_s();
 
         // Get feedback
+        timespec startGet = KMR::CBM::time_s();
         if (ctr == 0)
             motorHandler.getPositions(fbckPositions, 0);
         else    
             motorHandler.getPositions(fbckPositions);
+        timespec endGet = KMR::CBM::time_s();
 
-        cout << "Positions: "; 
-        for (int i=0; i<nbrMotors; i++) {
-            cout << fbckPositions[i] << " rad";
-            if (i != (nbrMotors-1))
-                cout << ", ";
-        }
-        cout << endl;
+        //cout << "Positions: "; 
+        //for (int i=0; i<nbrMotors; i++) {
+        //    cout << fbckPositions[i] << " rad";
+        //    if (i != (nbrMotors-1))
+        //        cout << ", ";
+        //}
+        //cout << endl;
 
         // Send new goal positions
         for (int i=0; i<nbrMotors; i++)
             goalPositions[i] = angle;
+        timespec startSet = KMR::CBM::time_s();
         motorHandler.setPositions(goalPositions);
+        timespec endSet = KMR::CBM::time_s();
 
         // Update the goal angle for next loop
         if (forward) {
@@ -104,6 +108,9 @@ int main()
             }
         }
 
+        // debug
+        cout << "Set: " << KMR::CBM::get_delta_us(endSet, startSet) << " us, get: " <<  KMR::CBM::get_delta_us(endGet, startGet) << " us" << endl;
+
         // Increment counter and set the control loop to 5ms
         ctr++;
 
@@ -113,7 +120,7 @@ int main()
         if (toSleep_us < 0) {
             toSleep_us = 0;
             overtimeCtr++;
-            //cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
+            cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
 
         usleep(toSleep_us);
