@@ -16,6 +16,8 @@
 #include "unistd.h"
 #include <cmath>
 
+#include <fstream>
+
 #define INCREMENT       0.02
 #define MAX_CTR         1000
 #define CTRL_PERIOD_US  5000
@@ -27,16 +29,78 @@ using namespace std;
 // --------------------------------------------------------------------------- //
 
 // Id(s) and model(s) of motor(s)
-vector<int> ids = {1}; 
+vector<int> ids = {1, 4, 5}; 
 int nbrMotors = ids.size();
-vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6};
+vector<KMR::CBM::Model> models{KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6, KMR::CBM::Model::AK60_6};
 
 const char* can_bus = "can0";
 // --------------------------------------------------------------------------- //
 
+bool setSchedulingPrio()
+{
+    // Check if it has realtime
+    std::ifstream realtime("/sys/kernel/realtime", std::ios_base::in);
+    bool is_realtime;
+    realtime >> is_realtime;
+    if (is_realtime)
+        cout << "Kernel is RT" << endl;
+    else 
+    {
+        cout << "NOT RT!!!" << endl;
+        exit(1);
+    }
+
+    const int thread_priority = sched_get_priority_max(SCHED_FIFO);
+    if (thread_priority == -1) {
+        cout << "Could not get max prio for thread" << endl;
+        return false;
+    }
+    else {
+        cout << "Max thread prio for FIFO: " << thread_priority << endl;
+    }
+
+    sched_param thread_param{};
+    thread_param.sched_priority = thread_priority;
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &thread_param) != 0) {
+        cout << "Could not set new prio" << endl;
+        return false;
+    }
+
+	// Check if the prio was set correctly
+    int policy;
+    sched_param param;
+    int ret = pthread_getschedparam(pthread_self(), &policy, &param);
+    if (ret != 0) {
+        cout << "Error! Could not get parameter" << endl;
+        return false;
+    }
+	
+    cout << "Set prio: " << param.sched_priority << endl;
+    cout << "Policy: " << policy << endl;
+
+    if (policy != SCHED_FIFO) {
+        cout << "Error! Thread is not FIFO" << endl;
+        return false;
+    }
+    if (param.sched_priority != thread_priority)
+        return false;
+
+    return true;
+}
+
 
 int main()
 {
+    bool sched = setSchedulingPrio();
+    if (!sched) {
+        cout << "this sux" << endl;
+        return(1);
+    }
+    else  {
+        cout << "ok" << endl;
+        return(1);
+    }
+
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
     // Set Kp and Kd
@@ -122,6 +186,8 @@ int main()
             overtimeCtr++;
             cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
+
+                
 
         usleep(toSleep_us);
     }
