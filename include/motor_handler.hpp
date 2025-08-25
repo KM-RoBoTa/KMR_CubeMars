@@ -16,9 +16,9 @@
 
 #include "listener.hpp"
 #include "writer.hpp"
+#include "structures.hpp"
 
-#ifndef KMR_CUBEMARS_MOTOR_HANDLER_HPP
-#define KMR_CUBEMARS_MOTOR_HANDLER_HPP
+#pragma once
 
 namespace KMR::CBM
 {
@@ -95,6 +95,11 @@ public:
     bool getTemperatures(std::vector<int> ids, std::vector<int>& fbckTemperatures, bool moving = 1);
     bool getTemperatures(std::vector<int>& fbckTemperatures, bool moving = 1);
 
+    // ------ Hybrid setting-getting ------ //   
+
+    bool setImpedance(std::vector<int> ids, InputPkg inputs, FeedbackPkg& fbcks);
+    bool setImpedance(InputPkg inputs, FeedbackPkg& fbcks);
+
 private:
     int m_socket = -1;
 
@@ -117,5 +122,3 @@ private:
 };
 
 }
-
-#endif

@@ -60,7 +60,12 @@ MotorHandler::MotorHandler(std::vector<int> ids, const char* can_bus, std::vecto
     m_writer = new Writer(m_motors, ids, m_socket);
     m_listener = new Listener(m_motors, ids, m_socket);
 
-    usleep(2*1000000);
+
+	timespec startSleep = KMR::CBM::time_s();
+	timespec endSleep = KMR::CBM::time_s();
+	while(KMR::CBM::get_delta_us(endSleep, startSleep) < 2*1000000)
+		endSleep = KMR::CBM::time_s();
+    //usleep(2*1000000);
 
     pingMotors();
 }
@@ -399,7 +404,7 @@ bool MotorHandler::setCommand(std::vector<int> ids, std::vector<float> positions
 
     for (int i=0; i<ids.size(); i++) {
         if(m_writer->writeMITCommand(ids[i], positions[i], speeds[i], Kps[i], Kds[i], torques[i]) < 0)
-            cout << "[FAILED REQUEST] Failed to send impendance command to motor " << ids[i] << endl;
+            cout << "[FAILED REQUEST] Failed to send impedance command to motor " << ids[i] << endl;
         else {
             bool success = m_listener->fbckReceived(ids[i]);
             fullSuccess += success;
@@ -947,6 +952,43 @@ bool MotorHandler::getTemperatures(std::vector<int> ids, std::vector<int>& fbckT
 bool MotorHandler::getTemperatures(std::vector<int>& fbckTemperatures, bool moving)
 {
     return(getTemperatures(m_ids, fbckTemperatures, moving));
+}
+
+
+/*
+ *****************************************************************************
+ *                     Hybrid setting/getting
+ ****************************************************************************/
+
+bool MotorHandler::setImpedance(std::vector<int> ids, InputPkg inputs, FeedbackPkg& fbcks)
+{
+    int fullSuccess = 0;
+    FeedbackPkg tmpFbck(ids.size());
+
+    for (int i=0; i<ids.size(); i++) {
+        if(m_writer->writeMITCommand(ids[i], inputs.positions[i], inputs.speeds[i],
+                                    inputs.Kps[i], inputs.Kds[i], inputs.torques[i]) < 0)
+            cout << "[FAILED REQUEST] Failed to send impedance command to motor " << ids[i] << endl;
+        else {
+            bool success = m_listener->getFeedbacks(ids[i], tmpFbck.fbckPositions[i], tmpFbck.fbckSpeeds[i],
+                                                    tmpFbck.fbckTorques[i], tmpFbck.fbckTemperatures[i]);
+            fullSuccess += success;
+        }
+    }
+
+    // If no timeout for any motor, return 1. Else, return 0
+    if (fullSuccess == ids.size()) {
+        fbcks = tmpFbck;
+        return 1;
+    }
+    else
+        return 0; 
+}
+
+
+bool MotorHandler::setImpedance(InputPkg inputs, FeedbackPkg& fbcks)
+{
+    return(setImpedance(m_ids, inputs, fbcks));
 }
 
 

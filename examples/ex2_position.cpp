@@ -96,10 +96,10 @@ int main()
         cout << "this sux" << endl;
         return(1);
     }
-    else  {
-        cout << "ok" << endl;
-        return(1);
-    }
+    //else  {
+    //    cout << "ok" << endl;
+    //    return(1);
+    //}
 
     KMR::CBM::MotorHandler motorHandler(ids, can_bus, models);
 
@@ -187,9 +187,13 @@ int main()
             cout << "Overtime at step " << ctr << " , elapsed = " << elapsed << " us" << endl;
         }
 
-                
+        // Different type of sleep
+        timespec startSleep = KMR::CBM::time_s();
+        timespec endSleep = KMR::CBM::time_s();
+        while(KMR::CBM::get_delta_us(endSleep, startSleep) < toSleep_us)
+            endSleep = KMR::CBM::time_s();
 
-        usleep(toSleep_us);
+        //usleep(toSleep_us);
     }
 
     cout << endl << endl << "The position control example successfully finished." << endl;

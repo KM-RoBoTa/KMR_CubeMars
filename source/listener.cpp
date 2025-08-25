@@ -45,7 +45,12 @@ Listener::Listener(vector<Motor*> motors, vector<int> ids, int s)
 	m_ids = ids;
 
     cout << "Creating the CAN listener's thread..." << endl;
-	usleep(50000);  
+
+	timespec startSleep = KMR::CBM::time_s();
+	timespec endSleep = KMR::CBM::time_s();
+	while(KMR::CBM::get_delta_us(endSleep, startSleep) < 50000)
+		endSleep = KMR::CBM::time_s();
+	//usleep(50000);  
 }
 
 /**
